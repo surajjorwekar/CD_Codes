@@ -1,0 +1,6 @@
+main()
+{
+	int 123aa,b;
+	a=a+b;#
+	b=a&&10;/*sample /code*/
+}
