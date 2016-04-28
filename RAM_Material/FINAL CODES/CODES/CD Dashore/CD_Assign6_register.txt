@@ -1,0 +1,181 @@
+//************(FastScanner.java)***********************
+package register_allocation_final;
+
+import java.io.*;
+import java.util.StringTokenizer;
+
+public class FastScanner {
+
+    BufferedReader br;
+    StringTokenizer st;
+
+    public FastScanner(String s) {
+        try {
+            br = new BufferedReader(new FileReader(s));
+        } catch (FileNotFoundException e) {}
+    }
+
+    public FastScanner() {
+        br = new BufferedReader(new InputStreamReader(System.in));
+    }
+
+    String nextToken() {
+        while (st == null || !st.hasMoreElements()) {
+            try {
+                st = new StringTokenizer(br.readLine());
+            } catch (IOException e) {}
+        }
+        return st.nextToken();
+    }
+}
+
+//************(MachineCode.java)***********************
+package register_allocation_final;
+
+public class MachineCode {
+
+    static char memory;
+
+    static class RegisterDescriptor {
+
+        char register;
+        char variable;
+    }
+
+    class AddressDescriptor {
+
+        char variable;
+        char address;
+    }
+
+    public int[] getReg(RegisterDescriptor[] registers, char variable) {
+        int[] result = new int[2];
+        for (int i = 0; i < registers.length; ++i) {
+            if (registers[i].variable == (variable)) {
+                result[0] = 1;
+                result[1] = i;
+                return result;
+            }
+
+        }
+
+        for (int i = 0; i < registers.length; ++i) {
+            if (registers[i].variable == '\0') {
+                result[0] = 0;
+                result[1] = i;
+                return result;
+            }
+
+        }
+
+        for (int i = 0; i < registers.length; ++i) {
+            if (!(registers[i].variable == variable)) {
+                result[0] = 0;
+                result[1] = i;
+                return result;
+            }
+        }
+        return null;
+    }
+
+    public static void main(String[] args) {
+
+        FastScanner fs = new FastScanner();
+        MachineCode mc = new MachineCode();
+
+        RegisterDescriptor r = new RegisterDescriptor();
+        r.variable = 'p';
+        r.register = '\0';
+
+        RegisterDescriptor[] registers = new RegisterDescriptor[4];
+        registers[0] = new RegisterDescriptor();
+        registers[0].register = 'P';
+        registers[0].variable = '\0';
+        registers[1] = new RegisterDescriptor();
+        registers[1].register = 'Q';
+        registers[1].variable = '\0';
+        registers[2] = new RegisterDescriptor();
+        registers[2].register = 'R';
+        registers[2].variable = '\0';
+        registers[3] = new RegisterDescriptor();
+        registers[3].register = 'S';
+        registers[3].variable = '\0';
+
+        while (true) {
+            String line = fs.nextToken();
+            if (line.equals("")) {
+                break;
+            }
+
+            char[] tokens = line.toCharArray();
+
+            if (tokens.length == 5) {
+                int[] register1 = mc.getReg(registers, tokens[2]);
+
+                if (register1[0] != 1) {
+                    registers[register1[1]].variable = tokens[2];
+                    System.out.println("MOV " + registers[register1[1]].register + "," + tokens[2]);
+                }
+                int[] register2 = mc.getReg(registers, tokens[4]);
+                if (register2[0] != 1) {
+                    registers[register2[1]].variable = tokens[4];
+                    System.out.println("MOV " + registers[register2[1]].register + "," + tokens[4]);
+                }
+                memory = tokens[0];
+                switch (tokens[3]) {
+                    case '+': {
+                        System.out.println("ADD " + registers[register1[1]].register + "," + registers[register2[1]].register);
+                        break;
+                    }
+
+                    case '-': {
+                        System.out.println("SUB " + registers[register1[1]].register + "," + registers[register2[1]].register);
+                        break;
+                    }
+
+                    case '*': {
+                        System.out.println("MUL " + registers[register1[1]].register + "," + registers[register2[1]].register);
+                        break;
+                    }
+
+                    case '/': {
+                        System.out.println("DIV " + registers[register1[1]].register + "," + registers[register2[1]].register);
+                        break;
+                    }
+
+                    default: {
+                        System.out.println("Invalid operator");
+                    }
+                }
+                int[] register3 = mc.getReg(registers, tokens[0]);
+                registers[register3[1]].variable = tokens[0];
+                System.out.println("MOV " + registers[register3[1]].register + "," + tokens[0]);
+
+                System.out.println();
+                System.out.println("Register" + "\t" + "Variable");
+                for (int i = 0; i < registers.length; ++i) {
+                    System.out.println(registers[i].register + "\t\t\t" + registers[i].variable);
+                }
+                System.out.println();
+            }
+        }
+    }
+}
+
+//************(OUTPUT)***********************
+
+/*	OUTPUT
+run:
+a=s+f
+MOV P,s
+MOV Q,f
+ADD P,Q
+MOV R,a
+
+Register	Variable
+P			s
+Q			f
+R			a
+S			
+*/
+//************(END)***********************

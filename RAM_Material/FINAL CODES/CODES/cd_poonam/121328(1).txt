@@ -1,0 +1,130 @@
+﻿Name: Poonam Maruti Bagate
+Div: E        Roll no:19
+Assignment: Implement lexical analyzer for subset of 'C' language usnig LEX.Input fielname as command line argument.
+
+Source Code:-
+
+
+%{
+#include<stdio.h>
+int count=0, lcount=0,keyword_count=0,identifier_count=0,operand_count=0,header_count=0;
+%}
+
+%%
+
+[a-zA-Z]*\<[a-zA-Z|\.]*\> {printf("\n%s\t Header file: 	",yytext+8);}header_count++;
+
+[a-zA-Z]*\(\) {printf("\n%s\tFunction: ",yytext);}
+
+
+"int"|"void"|"float"|"double"|"char"|"for"|"while"|"else"|"if"|"for"|"do"|"return"|"printf"|"scanf" {printf("\n%s\tKeyword: 		 ",yytext);}keyword_count++;
+
+"+"|"-"|"*"|"/"|"|"|"^"|">="|"<=="|"~"|"++"|"%"|"=" {printf("\n%s\tOperator: ",yytext);}
+
+"{"|"["|"("|"}"|"]"|")"|";"|"," {printf("\n%s\tDelimiter:",yytext);}
+
+[a-zA-Z]* {printf("\n%s\tIdentifier:",yytext);}
+
+_?[0-9]* {printf("\n%s\tNumber:",yytext);}operand_count++;
+
+" " {count++;}
+
+"\n" {lcount++;}
+
+
+%%
+
+int main(int argc, char *argv[])  
+{
+
+FILE *fp;
+
+char file_path[100];
+printf("Enter file name:");
+scanf("%s",&file_path);
+
+fp=fopen(file_path,"r");
+
+yyin=fp;
+yylex();
+
+
+printf("\nNumber of header:    		%d",header_count);
+
+printf("\nNumber of keywords:  		%d",keyword_count);
+
+printf("\nNumber of operands:    	        %d",operand_count);
+
+
+printf("\nNumber of white spaces: 	%d",count);
+
+printf("\nNumber of lines:        	%d\n",lcount);
+return 0;
+}
+int yywrap()
+{
+return 1;
+}
+
+Input-
+
+#include<stdio.h>
+void main()
+{
+        int a,b,c;
+        a=10;
+        if (a=10)
+                a=a+20;
+        else
+                a=a+5;
+}
+
+Output-
+poonam@ubuntu:~$ cd Documents
+poonam@ubuntu:~/Documents$ cc lex.yy.c -ll
+l
+poonam@ubuntu:~/Documents$ ./a.out
+Enter file name:input.c
+#
+stdio.h>	 Header file: 		
+void	Keyword: 		 
+main()	Function:	         
+{	Delimiter:  		
+int	Keyword: 		 
+a	Identifier:		 
+,	Delimiter:  		
+b	Identifier:		 
+,	Delimiter:  		
+c	Identifier:		 
+;	Delimiter:  		
+a	Identifier:		 
+=	Operator: 		
+10	Number: 		
+;	Delimiter:  		
+if	Keyword: 		 
+(       Delimiter:  		
+a	Identifier:		 
+=	Operator: 		
+10	Number: 		
+)	Delimiter:  		
+a	Identifier:		 
+=	Operator: 		
+a	Identifier:		 
++	Operator: 		
+20	Number: 		
+;	Delimiter:  		
+else	Keyword: 		 
+a	Identifier:		 
+=	Operator: 		
+a	Identifier:		 
++	Operator: 		
+5	Number: 		
+;	Delimiter:  		
+}	Delimiter:  		
+Number of header:    		1
+Number of keywords:  		4
+Number of operands:    	        4
+Number of white spaces: 	67
+Number of lines:        	12
+poonam@ubuntu:~/Documents$ 
+

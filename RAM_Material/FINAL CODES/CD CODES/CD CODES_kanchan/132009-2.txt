@@ -1,0 +1,83 @@
+/*
+Name:Kanchan Kharabi
+Roll-No-39 BE-COMP
+GR-No-132009
+Title:
+       A]Count number of coments
+       B]Eliminate coments
+       c]copy the file in to another file
+*/
+______________________________________________________________________
+
+Code:
+_____
+
+%{
+  int Count=0;
+%}
+
+
+%%
+"/*"(.|\n)*"*/" {Count++;}
+"//"(.)* {Count++;}
+%%
+
+main()
+{
+yyin=fopen("input.c","r");
+yyout=fopen("output.c","w");
+yylex();
+printf("NO OF COMMENTS IN INPUT FILE ARE=%d",Count);
+return 0;
+}
+
+INPUT FILE:
+_____________
+
+#include <stdio.h>
+ 
+int main()
+{
+  int c, n, fact = 1;
+ 
+  printf("Enter a number to calculate it's factorial\n");
+  scanf("%d", &n);
+ 
+  for (c = 1; c <= n; c++)
+    fact = fact * c;
+ 
+  //printf("Factorial of %d = %d\n", n, fact);
+ 
+  return 0;
+}
+
+OUTPUT:
+_______________
+student@unix5-OptiPlex-360:~/Desktop$ lex Comment.l
+student@unix5-OptiPlex-360:~/Desktop$ cc lex.yy.c -ll
+student@unix5-OptiPlex-360:~/Desktop$ ./a.out
+
+ NO OF COMMENTS IN INPUT FILE ARE=1
+student@unix5-OptiPlex-360:~/Desktop$ 
+
+
+OUTPUT FILE:
+________________
+
+#include <stdio.h>
+ 
+int main()
+{
+  int c, n, fact = 1;
+ 
+  printf("Enter a number to calculate it's factorial\n");
+  scanf("%d", &n);
+ 
+  for (c = 1; c <= n; c++)
+    fact = fact * c;
+ 
+  
+ 
+  return 0;
+}
+

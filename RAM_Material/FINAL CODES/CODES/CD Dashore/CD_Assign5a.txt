@@ -1,0 +1,141 @@
+//****************(Lex.l)************************
+
+%{
+#include "y.tab.h"
+extern char yyval;
+%}
+
+NUM [0-9]+
+CHAR [a-zA-Z]+
+
+%%
+
+{CHAR} {yylval.sym=(char)yytext[0];return CHAR;}
+{NUM} {yylval.sym=(char)yytext[0]; return NUM;}
+
+\n {return 0;}
+. {return yytext[0];}
+
+%%
+
+//*******************(Parse.y)**************************
+%{
+
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+void ThreeAddrCode();
+char Add2Table(char ,char, char);
+
+int ind=0;
+char temp='A';
+struct incod
+{
+char opd1;
+char opd2;
+char opr;
+};
+%}
+
+%union
+{
+char sym;
+}
+
+%token <sym> CHAR NUM
+%type <sym> expr
+%left '-''+'
+%right '*''/'
+
+%%
+
+statement: CHAR '=' expr ';' {Add2Table((char)$1,(char)$3,'=');}
+| expr ';'
+;
+
+expr: expr '+' expr {$$ = Add2Table((char)$1,(char)$3,'+');}
+| expr '-' expr {$$ = Add2Table((char)$1,(char)$3,'-');}
+| expr '*' expr {$$ = Add2Table((char)$1,(char)$3,'*');}
+| expr '/' expr {$$ = Add2Table((char)$1,(char)$3,'/');}
+| '(' expr ')' {$$ = (char)$2;}
+| NUM {$$ = (char)$1;}
+| CHAR {$$ = (char)$1;}
+;
+
+%%
+
+yyerror(char *s)
+{
+printf("%s",s);
+exit(0);
+}
+
+struct incod code[20];
+
+int id=0;
+
+char Add2Table(char opd1,char opd2,char opr)
+{
+code[ind].opd1=opd1;
+code[ind].opd2=opd2;
+code[ind].opr=opr;
+ind++;
+temp++;
+return temp;
+}
+
+void ThreeAddrCode()
+{
+int cnt=0;
+temp++;
+printf("\nTHREE ADDRESS CODE\n\n");
+while(cnt<ind)
+{
+printf("%c : = \t",temp);
+if(isalpha(code[cnt].opd1))
+printf("%c \t",code[cnt].opd1);
+else
+{printf("%c \t",temp);}
+
+printf("%c \t",code[cnt].opr);
+
+if(isalpha(code[cnt].opd2))
+printf("%c \t",code[cnt].opd2);
+else
+{printf("%c \t",temp);}
+
+printf("\n");
+cnt++;
+temp++;
+}
+}
+
+
+main()
+{
+printf("\nEnter the Expression: ");
+yyparse();
+temp='A';
+ThreeAddrCode();
+}
+
+yywrap()
+{
+return 1;
+}
+//*******************(output)***********************
+hduser@ubuntu:~/Desktop/CD_5a$ lex lex.l
+hduser@ubuntu:~/Desktop/CD_5a$ yacc -d parse.y
+hduser@ubuntu:~/Desktop/CD_5a$ gcc lex.yy.c y.tab.c -ll -lm
+hduser@ubuntu:~/Desktop/CD_5a$ ./a.out 
+
+Enter the Expression: a=((b+c)*(d+e));
+
+THREE ADDRESS CODE
+
+B : = 	b 	+ 	c 	
+C : = 	d 	+ 	e 	
+D : = 	B 	* 	C 	
+E : = 	a 	= 	D 	
+hduser@ubuntu:~/Desktop/CD_5a$ 
+

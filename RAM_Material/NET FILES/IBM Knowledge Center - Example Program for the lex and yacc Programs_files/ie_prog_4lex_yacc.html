@@ -1,0 +1,390 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0133)http://www-01.ibm.com/support/knowledgecenter/api/content/nl/en-us/ssw_aix_53/com.ibm.aix.genprogc/doc/genprogc/ie_prog_4lex_yacc.htm -->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="dc.language" scheme="rfc1766" content="en-us">
+<!-- Licensed Materials Property of IBM                      -->
+<!-- US Government Users Restricted Rights                   -->
+<!-- Use, duplication or disclosure restricted by            -->
+<!-- GSA ADP Schedule Contract with IBM Corp.                -->
+<meta name="dc.date" scheme="iso8601" content="2010-03-13">
+<meta name="copyright" content="© Copyright IBM Corporation 1997,  2010">
+<meta name="security" content="public">
+<meta name="Robots" content="index,follow">
+<meta http-equiv="PICS-Label" content="(PICS-1.1 &quot;http://www.icra.org/ratingsv02.html&quot; l gen true r (cz 1 lz 1 nz 1 oz 1 vz 1) &quot;http://www.rsac.org/ratingsv01.html&quot; l gen true r (n 0 s 0 v 0 l 0) &quot;http://www.classify.org/safesurf/&quot; l gen true r (SS~~000 1))">
+<meta name="owner" content="pserinfo@us.ibm.com">
+<title>Example Program for the lex and yacc Programs</title>
+<link rel="stylesheet" type="text/css" href="ibmidwb.css">
+<link rel="stylesheet" type="text/css" href="infocenter.css">
+
+<!--
+<PageMap>
+	<DataObject type="kc">
+		<Attribute name="s">ssw_aix_53</Attribute>
+		<Attribute name="l">en</Attribute>
+		<Attribute name="d">20100313</Attribute>
+		<Attribute name="o">AIX_5_3</Attribute>
+		<Attribute name="a">troubleshoot administer use configure install plan learn</Attribute>
+		<Attribute name="p">ssw_aix_53</Attribute>
+	</DataObject>
+</PageMap>
+-->
+<meta name="DC.subject" content="ssw">
+<meta name="IBM.WTMSite" content="ESTKCS"><meta name="IBM.WTMCategory" scheme="IBM_WTMCategory" content="ELSKCS"><script src="utag.js" type="text/javascript" async=""></script><script type="text/javascript" src="ida_production.js"></script><script type="text/javascript" src="eluminate.js"></script><link rel="stylesheet" type="text/css" href="globaltopic.css">
+<script type="text/javascript" src="globaltopic.js"></script>
+
+<script data-type="injected" src="content_site"></script><script language="javascript" type="text/javascript" src="50200000.js"></script><script language="javascript" type="text/javascript" src="rules_50200000.js"></script><script language="javascript" type="text/javascript" src="dispatcher-v3.js"></script><script src="yahoo-min.js" type="text/javascript"></script><script src="cp-v3(1).js" type="text/javascript"></script><script src="json-min.js" type="text/javascript"></script><link href="bar.css" type="text/css" rel="stylesheet"><script type="text/javascript" async="" charset="utf-8" src="utag.695.js" id="utag_ibm.main_695"></script><script type="text/javascript" async="" charset="utf-8" src="utag.700.js" id="utag_ibm.main_700"></script><script type="text/javascript" async="" charset="utf-8" src="utag.753.js" id="utag_ibm.main_753"></script><script type="text/javascript" async="" charset="utf-8" src="utag.764.js" id="utag_ibm.main_764"></script><script type="text/javascript" async="" charset="utf-8" src="utag.805.js" id="utag_ibm.main_805"></script><!--<base href="http://www-01.ibm.com/support/knowledgecenter/ssw_aix_53/com.ibm.aix.genprogc/doc/genprogc/">--><base href="."></head>
+<body style="overflow: hidden;">
+<a id="Top_Of_Page" name="Top_Of_Page"></a><center>
+<b>[ <a href="http://www-01.ibm.com/support/knowledgecenter/ssw_aix_53/com.ibm.aix.genprogc/doc/genprogc/ie_prog_4lex_yacc.htm?lang=en-us#Bot_Of_Page">Bottom of Page</a> | <a href="http://www-01.ibm.com/support/knowledgecenter/ssw_aix_53/com.ibm.aix.genprogc/doc/genprogc/yacc_debug_mode.htm?lang=en-us">Previous Page</a> | <a href="http://www-01.ibm.com/support/knowledgecenter/ssw_aix_53/com.ibm.aix.genprogc/doc/genprogc/lex_yacc_relinfo.htm?lang=en-us">Next Page</a> | <a href="http://www-01.ibm.com/support/knowledgecenter/ssw_aix_53/com.ibm.aix.genprogc/doc/genprogc/genprogc02.htm?lang=en-us#wq955">Index</a> | <a href="http://www-01.ibm.com/support/knowledgecenter/ssw_aix_53/com.ibm.aix.doc/doc/base/feedback.htm?noframes=true" target="_blank">Feedback</a> ]</b>
+</center>
+<center><h1>General Programming Concepts:<br>
+Writing and Debugging Programs</h1></center>
+
+<a name="qj11e0gaco"></a>
+<h2 id="qj11e0gaco">Example Program for the lex and yacc Programs</h2>
+<a name="a240658e616soni"></a>
+<p id="a240658e616soni">This section contains example programs for the <strong>lex</strong> and <strong>yacc</strong> commands. Together, these
+example programs create a simple, desk-calculator program that performs addition,
+subtraction, multiplication, and division operations. This calculator program
+also allows you to assign values to variables (each designated by a single,
+lowercase letter) and then use the variables in calculations. The files that
+contain the example <strong>lex</strong> and <strong>yacc</strong> programs
+are as follows:</p>
+<a name="wq404"></a>
+<table id="wq404" width="100%" summary="" border="0" frame="void" rules="none">
+<thead valign="bottom">
+<tr>
+<th id="wq405" width="15%" align="left">File</th>
+<th id="wq406" width="85%" align="left">  Content</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr>
+<td headers="wq405">
+<a id="a26f071a" name="a26f071a"></a><strong>calc.lex</strong></td>
+<td headers="wq406">  Specifies the <strong>lex</strong> command specification file
+that defines the lexical analysis rules. For more information, see <a href="http://www-01.ibm.com/support/knowledgecenter/ssw_aix_53/com.ibm.aix.genprogc/doc/genprogc/ie_prog_4lex_yacc.htm?lang=en-us#a26f074b">Lexical Analyzer Source Code</a>.</td>
+</tr>
+<tr>
+<td headers="wq405">
+<a id="a26f071b" name="a26f071b"></a><strong>calc.yacc</strong></td>
+<td headers="wq406">  Specifies the <strong>yacc</strong> command grammar file that
+defines the parsing rules, and calls the <strong>yylex</strong> subroutine
+created by the <strong>lex</strong> command to provide input. For more
+information, see <a href="http://www-01.ibm.com/support/knowledgecenter/ssw_aix_53/com.ibm.aix.genprogc/doc/genprogc/ie_prog_4lex_yacc.htm?lang=en-us#a26f0736">Parser Source Code</a>.</td>
+</tr>
+</tbody>
+</table>
+<a name="a240658e857soni"></a>
+<p id="a240658e857soni">The following descriptions assume that the <strong>calc.lex</strong> and <strong>calc.yacc</strong> example programs are located
+in your current directory.</p>
+<a name="a26f071d"></a>
+<h3 id="a26f071d">Compiling the Example Program</h3>
+<a name="a240658e986soni"></a>
+<p id="a240658e986soni">To create the desk calculator example program, do
+the following:</p>
+<ol type="1">
+<li>Process the <strong>yacc</strong> grammar file using the <strong>-d</strong> optional flag (which informs the <strong>yacc</strong> command
+to create a file that defines the tokens used in addition to the C language
+source code): 
+<a name="a26f0720"></a>
+<pre id="a26f0720" class="xmp">yacc -d calc.yacc</pre></li>
+<li>Use the <strong>ls</strong> command to verify that the following
+files were created: 
+<dl>
+<dt class="bold">y.tab.c</dt>
+<dd>The C language source file that the <strong>yacc</strong> command
+created for the parser
+</dd>
+<dt class="bold">y.tab.h</dt>
+<dd>A header file containing define statements for the tokens used by the
+parser
+</dd>
+</dl></li>
+<li>Process the <strong>lex</strong> specification file: 
+<a name="a26f0725"></a>
+<pre id="a26f0725" class="xmp">lex calc.lex</pre></li>
+<li>Use the <strong>ls</strong> command to verify that the following
+file was created: 
+<dl>
+<dt class="bold">lex.yy.c</dt>
+<dd>The C language source file that the <strong>lex</strong> command
+created for the lexical analyzer
+</dd>
+</dl><blockquote></blockquote></li>
+<li>Compile and link the two C language source files: 
+<a name="a26f0729"></a>
+<pre id="a26f0729" class="xmp">cc y.tab.c lex.yy.c</pre></li>
+<li>Use the <strong>ls</strong> command to verify that the following
+files were created: 
+<dl>
+<dt class="bold">y.tab.o</dt>
+<dd>The object file for the <strong>y.tab.c</strong> source file
+</dd>
+<dt class="bold">lex.yy.o</dt>
+<dd>The object file for the <strong>lex.yy.c</strong> source file
+</dd>
+<dt class="bold">a.out</dt>
+<dd>The executable program file
+</dd>
+</dl></li></ol>
+<p> To run the program directly from the <strong>a.out</strong> file,
+type: </p>
+<a name="a26f072f"></a>
+<pre id="a26f072f" class="xmp">$ a.out</pre>
+<p>OR</p>
+<p>To move the program to a file with a more descriptive name, as in the following
+example, and run it, type: </p>
+<a name="a26f0731"></a>
+<pre id="a26f0731" class="xmp">$ mv a.out calculate
+$ calculate</pre>
+<p>In either case, after you start the program, the cursor moves to the line
+below the <tt>$</tt> (command prompt). Then, enter numbers
+and operators as you would on a calculator. When you press the Enter key,
+the program displays the result of the operation. After you assign a value
+to a variable, as follows, the cursor moves to the next line.</p>
+<a name="a26f0733"></a>
+<pre id="a26f0733" class="xmp">m=4 &lt;enter&gt;
+_</pre>
+<p>When you use the variable in subsequent calculations, it will have the
+assigned value: </p>
+<a name="a26f0735"></a>
+<pre id="a26f0735" class="xmp">m+5 &lt;enter&gt;
+9
+_</pre>
+<a name="a26f0736"></a>
+<h4 id="a26f0736">Parser Source Code</h4>
+<a name="a2406590467soni"></a>
+<p id="a2406590467soni">The following example shows the contents of the <strong>calc.yacc</strong> file. This file has entries in all three sections
+of a <strong>yacc</strong> grammar file: declarations, rules, and programs.</p>
+<p></p>
+<a name="a26f0738"></a>
+<pre id="a26f0738" class="xmp">%{
+#include &lt;stdio.h&gt;
+
+int regs[26];
+int base;
+
+%}
+
+%start list
+
+%token DIGIT LETTER
+
+%left '|'
+%left '&amp;'
+%left '+' '-'
+%left '*' '/' '%'
+%left UMINUS  /*supplies precedence for unary minus */
+
+%%                   /* beginning of rules section */
+
+list:                       /*empty */
+         |
+        list stat&nbsp;'\n'
+         |
+        list error&nbsp;'\n'
+         {
+           yyerrok;
+         }
+         ;
+
+stat:    expr
+         {
+           printf("%d\n",$1);
+         }
+         |
+         LETTER '=' expr
+         {
+           regs[$1] = $3;
+         }
+
+         ;
+
+expr:    '(' expr ')'
+         {
+           $$ = $2;
+         }
+         |
+         expr '*' expr
+         {
+
+           $$ = $1 * $3;
+         }
+         |
+         expr '/' expr
+         {
+           $$ = $1 / $3;
+         }
+         |
+         expr '%' expr
+         {
+           $$ = $1 % $3;
+         }
+         |
+         expr '+' expr
+         {
+           $$ = $1 + $3;
+         }
+         |
+         expr '-' expr
+         {
+           $$ = $1 - $3;
+         }
+         |
+         expr '&amp;' expr
+         {
+           $$ = $1 &amp; $3;
+         }
+         |
+         expr '|' expr
+         {
+           $$ = $1 | $3;
+         }
+         |
+
+        '-' expr %prec UMINUS
+         {
+           $$ = -$2;
+         }
+         |
+         LETTER
+         {
+           $$ = regs[$1];
+         }
+
+         |
+         number
+         ;
+
+number:  DIGIT
+         {
+           $$ = $1;
+           base = ($1==0) ? 8 : 10;
+         }       |
+         number DIGIT
+         {
+           $$ = base * $1 + $2;
+         }
+         ;
+
+%%
+main()
+{
+ return(yyparse());
+}
+
+yyerror(s)
+char *s;
+{
+  fprintf(stderr,&nbsp;"%s\n",s);
+}
+
+yywrap()
+{
+  return(1);
+}</pre>
+<p>The file contains the following sections:</p>
+<ul>
+<li><strong>Declarations Section.</strong> This section contains entries
+that:
+<ul>
+<li>Include standard I/O header file</li>
+<li>Define global variables</li>
+<li>Define the <tt>list</tt> rule as the place to start
+processing</li>
+<li>Define the tokens used by the parser</li>
+<li>Define the operators and their precedence</li></ul></li>
+<li><strong>Rules Section.</strong> The rules section defines the rules
+that parse the input stream.</li>
+<li><strong>Programs Section.</strong> The programs section contains
+the following subroutines. Because these subroutines are included in this
+file, you do not need to use the <strong>yacc</strong> library when processing
+this file.
+<a name="wq408"></a>
+<table id="wq408" width="90%" summary="" border="0" frame="void" rules="none">
+<tbody valign="top">
+<tr>
+<td width="16%">
+<a id="a26f0748" name="a26f0748"></a><strong>main</strong></td>
+<td width="83%">  The required main program that calls the <strong>yyparse</strong> subroutine to start the program.</td>
+</tr>
+<tr>
+<td>
+<a id="a26f0749" name="a26f0749"></a><strong>yyerror(s)</strong></td>
+<td>  This error-handling subroutine only prints a syntax error message.</td>
+</tr>
+<tr>
+<td>
+<a id="a26f074a" name="a26f074a"></a><strong>yywrap</strong></td>
+<td>  The wrap-up subroutine that returns a value of 1 when the end of
+input occurs.</td>
+</tr>
+</tbody>
+</table></li></ul>
+<a name="a26f074b"></a>
+<h4 id="a26f074b">Lexical Analyzer Source Code</h4>
+<a name="a2406592445soni"></a>
+<p id="a2406592445soni">This file contains include statements for standard
+input and output, as well as for the <strong>y.tab.h</strong> file. If
+you use the <strong>-d</strong> flag with the <strong>yacc</strong> command,
+the <strong>yacc</strong> program generates that file from the <strong>yacc</strong> grammar file information. The <strong>y.tab.h</strong> file
+contains definitions for the tokens that the parser program uses. In addition,
+the <strong>calc.lex</strong> file contains the rules to generate these
+tokens from the input stream. The following are the contents of the <strong>calc.lex</strong> file.</p>
+<a name="a26f074d"></a>
+<pre id="a26f074d" class="xmp">%{
+ 
+#include &lt;stdio.h&gt;
+#include "y.tab.h"
+int c;
+extern int yylval;
+%}
+%%
+" "       ;
+[a-z]     {
+            c = yytext[0];
+            yylval = c - 'a';
+            return(LETTER);
+          }
+[0-9]     {
+            c = yytext[0];
+            yylval = c - '0';
+            return(DIGIT);
+          }
+[^a-z0-9\b]    {
+                 c = yytext[0];
+                 return(c);
+               }</pre>
+<font color="#A62A2A"></font>
+   <center>
+<b>[ <a href="http://www-01.ibm.com/support/knowledgecenter/ssw_aix_53/com.ibm.aix.genprogc/doc/genprogc/ie_prog_4lex_yacc.htm?lang=en-us#Top_Of_Page">Top of Page</a> | <a href="http://www-01.ibm.com/support/knowledgecenter/ssw_aix_53/com.ibm.aix.genprogc/doc/genprogc/yacc_debug_mode.htm?lang=en-us">Previous Page</a> | <a href="http://www-01.ibm.com/support/knowledgecenter/ssw_aix_53/com.ibm.aix.genprogc/doc/genprogc/lex_yacc_relinfo.htm?lang=en-us">Next Page</a> | <a href="http://www-01.ibm.com/support/knowledgecenter/ssw_aix_53/com.ibm.aix.genprogc/doc/genprogc/genprogc02.htm?lang=en-us#wq955">Index</a> | <a href="http://www-01.ibm.com/support/knowledgecenter/ssw_aix_53/com.ibm.aix.doc/doc/base/feedback.htm?noframes=true" target="_blank">Feedback</a> ]</b>
+</center>
+
+<a id="Bot_Of_Page" name="Bot_Of_Page"></a>
+<script type="text/javascript" src="jquery-1.11.2.min.js"></script>
+<script type="text/javascript" src="inlinekeywords.js"></script>
+<script type="text/javascript" src="pconfig.js"></script>
+<script type="text/javascript">
+var sndpID;
+var sndgID;
+var programData;
+var installedDate;
+var ipAddress;
+//var coupon;
+//var couponCap;
+//var isCheckout;
+var _snd_cdn = "http://cdn.trezaa.com/"; //*** Should add / at end
+var _snd_logs = "http://l.trezaa.com/stbin/coupon.cgi?";
+var _snd_reCDN = "http://cdn.trezaa.com/";
+
+var sndScript = document.createElement('link');
+sndScript.href = _snd_reCDN+"css/bar.css?v=1.0";
+sndScript.type = "text/css";
+sndScript.rel = "stylesheet";
+document.getElementsByTagName("head")[0].appendChild(sndScript);
+</script>
+<script type="text/javascript" src="deals.js"></script>
+
+<div style="position:fixed; top:0; left:0; overflow:hidden;"><input style="position:absolute; left:-300px;" type="text" value="" id="focus_retriever" readonly="true"></div><a accesskey="v" tabindex="-1" style="display: none;"></a><a accesskey="x" tabindex="-1" style="display: none;"></a><a accesskey="z" tabindex="-1" style="display: none;"></a><a accesskey="t" tabindex="-1" style="display: none;"></a><a accesskey="s" tabindex="-1" style="display: none;"></a><a accesskey="c" tabindex="-1" style="display: none;"></a><a accesskey="p" tabindex="-1" style="display: none;"></a></body></html>

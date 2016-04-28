@@ -1,0 +1,414 @@
+//*************************(Lex.l)********************************
+%{
+	
+	#include<stdio.h>
+	#include<string.h>
+	#include "y.tab.h"
+	extern YYSTYPE yylval;
+	int line=1;
+%}
+
+CHAR [a-zA-Z]
+NUM [0-9]
+
+%%
+"int" {return INT;}
+"float" {return FLOAT;}
+"char" {return CHAR;}
+";"|","|"+"|"*"|"="|"-"|"/" {return yytext[0];}
+{CHAR}({CHAR}|{NUM})* {strcpy(yylval.b,yytext);return ID;}
+"\n" line++;
+%%
+int yywrap()
+{
+	return 1;
+}
+
+//************************(Parse.y)*********************************
+%{
+	#include<stdio.h>
+	#include<stdlib.h>
+	#include<string.h>
+	extern line;
+	
+	char in[6];
+	int offset=0,type;
+	char a[32],r1[32]="\0",r2[32]="\0",regi[3];
+	struct sym
+	{
+		char name[32];
+		char type[6];
+		int size;
+		int add;
+		struct sym *next;
+	};
+	typedef struct sym sym;
+	
+	struct quads
+	{
+		char op[2];
+		char attr1[32];
+		char attr2[32];
+		char res[32];
+		struct quads *next;
+	};
+	
+	typedef struct quads quads;
+	
+	void addtosym(char a[32],char in[6]);
+	void display();
+	void yyerror (char *s);
+	int check_type(char a[30],char b[30]);
+	char * gen(char a[20],char b[20],char c[2],char d[20]);
+	char * newtemp();
+	quads *start=NULL,*curr;
+	
+
+	int count_temp=0;
+	char app[100];
+	sym* head=NULL;
+%}
+
+
+%union 
+{
+	char b[30];
+	struct tac
+	{
+		char place[20];
+		char code[100];
+	}c;
+}
+
+%token <b>ID INT FLOAT CHAR
+%type <b>varlist
+%type <c>expr 
+%type <c>assgn
+
+%left '+' '-'
+%left '*' '/'
+
+%%
+
+stmt1 : stmt1 decl
+	  | decl
+	  | stmt1 assgn
+	  | assgn
+
+decl : type varlist ';'
+	 ;
+type : INT {strcpy(in,"int");}
+     | FLOAT {strcpy(in,"float");}
+	 | CHAR {strcpy(in,"char");}
+	 ;
+	 
+varlist : varlist ',' ID {addtosym($3,in);}
+		| ID {addtosym($1,in);}
+		;
+		
+		
+assgn : ID '=' expr ';' {
+							if(!check_presence($1))
+							{
+								printf("\nError %d : Undeclared identifier < %s >\n",line,$1); 
+								return 3;
+							} 
+							if(check_type($1,$3.place)) 
+
+
+							{
+								printf("\nError %d : Type error \n",line);
+								return 3;
+							}
+							strcat($$.code,$3.code);
+							strcat($$.code,gen($1,$3.place,"",""));
+							printf("\nTAC"); 
+							printf("\n\n%s\n\n",$$.code);
+						}
+		;
+expr : expr '+' expr 	{
+							if(check_type($1.place,$3.place))
+							{ 
+								printf("\nError %d : Type error \n",line);
+								return 3;
+							}
+							strcpy($$.code,"\0");
+							strcpy($$.place,newtemp()); 
+							strcat($$.code,$1.code);
+							strcat($$.code,$3.code);
+							strcat($$.code,gen($$.place,$1.place,"+",$3.place));
+						}
+							 
+	 | expr '-' expr 	{
+	 						if(check_type($1.place,$3.place)) 
+	 						{
+	 							printf("\nError %d : Type error \n",line);
+	 							return 3;
+	 						}
+	 						strcpy($$.code,"\0");
+	 						strcpy($$.place,newtemp()); 
+	 						strcat($$.code,$1.code);
+	 						strcat($$.code,$3.code);
+	 						strcat($$.code,gen($$.place,$1.place,"-",$3.place));
+	 					}
+	 					
+	 | expr '*' expr 	{
+	 						if(check_type($1.place,$3.place)) 
+	 						{
+	 							printf("\nError %d : Type error \n",line);
+	 							return 3;
+	 						}
+	 						strcpy($$.code,"\0");
+	 						strcpy($$.place,newtemp()); 
+	 						strcat($$.code,$1.code);
+	 						strcat($$.code,$3.code);
+	 						strcat($$.code,gen($$.place,$1.place,"*",$3.place));
+	 					}
+	 					
+	 | expr '/' expr 	{
+	 						if(check_type($1.place,$3.place)) 
+	 						{
+	 							printf("\nError %d : Type error \n",line);  
+	 							return 3;
+	 						}
+	 						strcpy($$.code,"\0");
+	 						strcpy($$.place,newtemp()); 
+	 						strcat($$.code,$1.code);
+	 						strcat($$.code,$3.code);
+	 						strcat($$.code,gen($$.place,$1.place,"/",$3.place));
+	 					}
+	 					
+	 | ID 				{
+	 						if(!check_presence($1)) 
+	 						{
+	 							printf("\nError %d : Undeclared identifier < %s >\n",line,$1); 
+	 							return 3;
+	 						} 
+	 						strcpy($$.place,$1); 
+	 						strcpy($$.code,"");
+	 					}
+	 ;
+%%
+
+int check_type(char a[30],char b[30])
+{
+	sym *s=head;
+	sym *t=head;
+	
+	while(s!=NULL)
+	{
+		if(!strcmp(s->name,a))
+			break;
+		s=s->next;
+	}
+	
+	while(t!=NULL)
+	{
+		if(!strcmp(t->name,b))
+			break;
+		t=t->next;
+	}
+		
+	if(!strcmp(s->type,t->type))
+		return 0;
+	return 1;
+}
+
+int check_presence(char a[32])
+{
+	sym *s=head;
+	
+	while(s!=NULL)
+	{
+		if(!strcmp(s->name,a))
+			return 1;
+		s=s->next;
+	}
+	return 0;
+}
+
+int check_size(char in[6])
+{
+	if(!strcmp(in,"int"))
+		return 2;
+	else if(!strcmp(in,"char"))
+		return 1;
+	return 4;
+}
+
+
+void addtosym(char a[32],char in[6])
+{
+	sym *new,*s;
+	
+	new = (sym*)malloc(sizeof(sym));
+	strcpy(new->name,a);
+	strcpy(new->type,in);
+	new->size=check_size(in);
+	new->add=offset;
+	new->next=NULL;
+	offset+=new->size;
+	
+	if(head==NULL)
+		head=new;
+	else
+	{
+		s=head;
+		while(s->next!=NULL)
+			s=s->next;
+		s->next=new;
+	}
+}
+
+char * newtemp()
+{
+	char app1[3];
+	strcpy(app,"\0");
+	sprintf(app1,"%d",count_temp);
+	count_temp++;
+	strcpy(app,"t");
+	strcat(app,app1);
+	strcat(app,"\0");
+	return app;
+}
+
+void gen_quads(char a[20],char b[20],char c[2],char d[20])
+{
+	quads *p;
+	sym *r=head;
+	p=start;
+	quads *n = (quads *) malloc(sizeof(quads));
+	if(!strcmp(c,""))
+		strcpy(n->op,"=");
+	else
+		strcpy(n->op,c);
+	strcat(n->attr1,b);
+	strcat(n->attr2,d);
+	strcat(n->res,a);
+	
+	n->next=NULL;
+	if(start == NULL)
+		start=n;
+	else
+	{
+		while(p->next != NULL)
+			p= p->next;
+		p->next=n;
+	}
+	
+	
+	if(!check_presence(a))
+	{
+		while(r!=NULL)
+		{
+			if(!strcmp(r->name,b))
+			{
+				addtosym(a,r->type);
+				break;
+			}
+			r=r->next;
+		}
+	}	
+}
+
+char * gen(char a[20],char b[20],char c[2],char d[20])
+{
+	strcpy(app,"\0");
+	strcpy(app,a);
+	strcat(app,"=");
+	strcat(app,b);
+	strcat(app,c);
+	strcat(app,d);
+	strcat(app,"\0");
+	strcat(app,"\n");
+	gen_quads(a,b,c,d);
+	return app;
+}
+
+void display()
+{
+	sym *s=head;
+	printf("\nSymbol table\nName\tType\tSize\tAddress\n");
+	while(s!=NULL)
+	{
+		printf("\n%s\t%s\t%d\t%d",s->name,s->type,s->size,s->add);
+		s=s->next;
+	}
+	printf("\n\n");
+}
+
+void disp_quads()
+{
+	quads *p=start;
+	printf("\nQuadruples\n\nOp\tAttr1\tAttr2\tRes\n");
+	while(p!=NULL)
+	{
+		printf("\n%s\t%s\t%s\t%s",p->op,p->attr1,p->attr2,p->res);
+		p=p->next;
+	}
+	printf("\n\n");
+}
+
+int main()
+{
+	int a = yyparse();
+	if(a==3)	
+		exit(0);
+	disp_quads();
+	display();
+	printf("\n");
+	return 0;
+}
+
+void yyerror (char *s)
+{
+    fprintf (stderr, "%s\n", s);
+}
+//************************(Output)*********************************
+/*
+Output:
+1.	Input:
+int a,b,c;
+c=a+d;
+a=2;b=2;
+
+Output:
+Error 4 : Undeclared identifier < d >
+
+2.	Input: int a,b,g;
+	   float c;
+	   char d,e,f;
+	   a=b+a*g/b;
+   
+Output: 
+
+TAC
+t0=a*g
+t1=t0/b
+t2=b+t1
+a=t2
+
+
+Quadruples
+
+Op	Attr1	Attr2	Res
+
+ *	    a	    g	 t0
+ /	   t0	    b	 t1
+ +	    b	   t1	 t2
+ =	   t2	            a
+Symbol table
+Name	 Type	Size	 Address
+
+a	  int	   2	       0
+b	  int	   2	       2
+g	  int	   2	       4
+c	float	   4	       6
+d	 char	   1	      10
+e	 char	   1	      11
+f	 char	   1	      12
+t0	  int	   2	      13
+t1	  int	   2    	 15
+t2	  int	   2	      17
+
+*/

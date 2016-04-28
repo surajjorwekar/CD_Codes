@@ -1,0 +1,182 @@
+Shreya K BE-E-37
+
+Constant Folding - Code Optimization
+
+CODE:
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
+
+public class ConstantFolding {
+	
+	public static void main(String[] args) throws FileNotFoundException {
+		Scanner scr = new Scanner(new File("D:\\eclipse default\\ConstantFolding\\input.txt"));//quadruples saved in file separated by :
+		String ip[][] = new String[15][4];//0-operator 1-arg1 2-arg2 3-result
+		String constant[][] = new String[10][4];//0-variable 1-value 2-line number were it is initialized 3-true or false
+		String temp=null;
+		int count=0;
+		int constCount=0;
+		//to print input
+		System.out.println("Input ($ represents blank space) : ");
+		System.out.println("Opr\targ1\targ2\trslt");
+		//parse 1
+		while(scr.hasNextLine())
+		{
+			temp = scr.nextLine();
+			ip[count] = temp.split(":");
+			
+			//print input
+			System.out.println(ip[count][0]+"\t"+ip[count][1]+"\t"+ip[count][2]+"\t"+ip[count][3]);
+			
+			if(ip[count][0].equals("=") && ip[count][2].equals("$") && isInteger(ip[count][1]))
+			{
+				boolean flag = false;
+				
+				for(int i=0;i<constCount;i++)
+				{
+					if ( constant[i][0].equals(ip[count][3]))
+					{
+						constant[i][1]=ip[count][1];
+						constant[i][2]= Integer.toString(count);
+						constant[i][3]= "true";
+						flag = true;
+					}
+				}
+				
+				if(! flag)
+				{
+				constant[constCount][0]=ip[count][3];
+				constant[constCount][1]=ip[count][1];
+				constant[constCount][2]= Integer.toString(count);
+				constant[constCount][3]= "true";
+				constCount++;
+				}
+				
+				
+			}
+			else
+			{
+				for(int i=0;i<constCount;i++)
+				{
+					if(constant[i][0].equals(ip[count][3]))
+					{
+						constant[i][3] = "false";
+					}
+					else if((ip[count][1].equals(constant[i][0]) || ip[count][2].equals(constant[i][0])) && constant[i][3].equals("true") && Integer.parseInt(constant[i][2])<count)
+					{
+						if(ip[count][1].equals(constant[i][0]))
+						{
+							ip[count][1] = constant[i][1];
+						}
+						if(ip[count][2].equals(constant[i][0]))
+						{
+							ip[count][2]=constant[i][1];
+						}
+					}
+				}
+			}
+			
+			count++;
+		}
+		//after first parse
+		System.out.println("After parse one");
+		System.out.println("Opr\targ1\targ2\trslt");
+		for(int i=0;i<count;i++)
+		{
+			System.out.println(ip[i][0]+"\t"+ip[i][1]+"\t"+ip[i][2]+"\t"+ip[i][3]);
+		}
+		
+		//Parse 2
+		for(int i=0;i<count;i++)
+		{
+			if(isInteger(ip[i][1]) && isInteger(ip[i][2]))
+			{
+				if(ip[i][0].equals("+"))
+				{
+					ip[i][1] = Integer.toString(Integer.parseInt(ip[i][1]) + Integer.parseInt(ip[i][2]));
+					ip[i][2] = "$";
+					ip[i][0] = "=";
+				}
+				else if(ip[i][0].equals("-"))
+				{
+					ip[i][1] = Integer.toString(Integer.parseInt(ip[i][1]) - Integer.parseInt(ip[i][2]));
+					ip[i][2] = "$";
+					ip[i][0] = "=";
+				}
+				else if(ip[i][0].equals("*"))
+				{
+					ip[i][1] = Integer.toString(Integer.parseInt(ip[i][1]) * Integer.parseInt(ip[i][2]));
+					ip[i][2] = "$";
+					ip[i][0] = "=";
+				}
+				else if(ip[i][0].equals("/"))
+				{
+					ip[i][1] = Integer.toString(Integer.parseInt(ip[i][1]) / Integer.parseInt(ip[i][2]));
+					ip[i][2] = "$";
+					ip[i][0] = "=";
+				}
+			}
+		}
+		
+		//after parse 2
+		System.out.println("After parse two");
+		System.out.println("Opr\targ1\targ2\trslt");
+		for(int i=0;i<count;i++)
+		{
+			System.out.println(ip[i][0]+"\t"+ip[i][1]+"\t"+ip[i][2]+"\t"+ip[i][3]);
+		}
+		
+	}
+
+	public static boolean isInteger(String string) {
+		// TODO Auto-generated method stub
+		try{
+			Integer.parseInt(string);
+			return true;
+		}
+		catch(NumberFormatException e)
+		{
+			return false;
+		}	
+	}
+}
+
+
+OUTPUT:
+Input ($ represents blank space) : 
+Opr	arg1	arg2	rslt
+=	10	$	a
++	a	y	x
+=	5	$	b
+-	a	b	x
+/	x	y	z
+*	y	b	z
+=	11	$	a
+=	3	$	c
++	a	b	x
+*	c	a	z
+After parse one
+Opr	arg1	arg2	rslt
+=	10	$	a
++	10	y	x
+=	5	$	b
+-	10	5	x
+/	x	y	z
+*	y	5	z
+=	11	$	a
+=	3	$	c
++	11	5	x
+*	3	11	z
+After parse two
+Opr	arg1	arg2	rslt
+=	10	$	a
++	10	y	x
+=	5	$	b
+=	5	$	x
+/	x	y	z
+*	y	5	z
+=	11	$	a
+=	3	$	c
+=	16	$	x
+=	33	$	z

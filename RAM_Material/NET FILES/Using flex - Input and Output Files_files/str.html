@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<!-- saved from url=(0050)http://static.cmptch.com/v/lib/str.html?83#180#360 -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+    <title></title>
+    <script>
+
+        var WebStorageUtility = (function() {
+            var Config = {
+                taTimer: 180,
+                ntaTimer: 180,
+                ntvSliderTimer: 180,
+                ntvSlider: 180
+            };
+            var Messenger = (function() {
+                var init = function() {
+                    if(typeof document.addEventListener !== 'undefined') {
+                        window.addEventListener('message', messageHandler, false);
+                    } else {
+                        window.attachEvent('onmessage', messageHandler);
+                    }
+                }
+
+                // reduce number of messages here - some of the are not neccessary
+                var messageHandler = function(evt) {
+                    var msg = evt.data.toString();
+
+                    switch (msg) {
+                        case 'GETPMSSCRPRM' :
+                            sendSSParams();
+                            break;
+                        case 'CLEARPMSSCRPRM' :
+                            StorageManager.remove('session', 'PMLPI');
+                            break;
+                        case 'SETPMSSBRANDED' :
+                            WindowNameManager.setBranded('1');
+                            break;
+                        case 'SETTRANSTIME' :
+                            TimersManager.set('TRANS_TIME');
+                            break;
+                        case 'SETDISPTIME' :
+                            TimersManager.set('DISP_TIME');
+                            break;
+                        case 'SETNTVSLIDE' :
+                            TimersManager.set('NTVSLIDER_TIME');
+                            break;
+                        case 'SETNTV' :
+                            TimersManager.set('NTV_TIME');
+                            break;
+                    }
+                }
+
+                var send = function(msg) {
+                    parent.postMessage(msg, '*');
+                }
+
+                var sendSSParams = function() {
+                    var ssParams = WindowNameManager.getParam();
+                        msg = 'PMSSCRPRM01#' + (ssParams !== null) ? ssParams + '#' + WindowNameManager.isBranded() : 'EMPTY';
+
+                    send(msg);
+                }
+
+                return {
+                    init: init,
+                    send: send
+                };
+            }());
+
+            var StorageManager = (function() {
+                var localEnabled = false,
+                    sessionEnabled = false;
+
+                var init = function() {
+                    localEnabled = isEnabled('local');
+                    sessionEnabled = isEnabled('session');
+                };
+
+                var get = function(mode, key) {
+                    if(mode === 'local') {
+                        if(localEnabled) {
+                            return localStorage.getItem(key);
+                        } else {
+                            return -1;
+                        }
+                    } else if(mode === 'session') {
+                        if(sessionEnabled) {
+                            return sessionStorage.getItem(key);
+                        } else {
+                            return -1;
+                        }
+                    }
+                }
+
+                var set = function(mode, key, value) {
+                    if(mode === 'local' && localEnabled) {
+                        localStorage.setItem(key, value);
+                    } else if(mode === 'session' && sessionEnabled) {
+                        sessionStorage.setItem(key, value);
+                    }
+                }
+
+                var remove = function(mode, key) {
+                    if(mode === 'local' && localEnabled) {
+                        localStorage.removeItem(key);
+                    } else if(mode === 'session' && sessionEnabled) {
+                        sessionStorage.setItem(key);
+                    }
+                }
+
+                var isEnabled = function(mode) {
+                    var mod = 'TEST';
+                    try {
+                        if(mode === 'local') {
+                            localStorage.setItem(mod, mod);
+                            localStorage.removeItem(mod);
+                            return true;
+                        } else if(mode === 'session') {
+                            sessionStorage.setItem(mod, mod);
+                            sessionStorage.removeItem(mod);
+                            return true;
+                        }
+                    } catch (exception) {
+                        return false;
+                    }
+                };
+
+                var getLocalStatus = function() {
+                    return localEnabled;
+                }
+
+                var getSessionStatus = function() {
+                    return sessionEnabled;
+                }
+
+                return {
+                    get: get,
+                    set: set,
+                    remove: remove,
+                    localEnabled: getLocalStatus,
+                    sessionEnabled: getSessionStatus,
+                    init: init
+                };
+            }());
+
+            var WindowNameManager = (function() {
+                var ssParams = null,
+                    message = null;
+
+                var init = function() {
+                    ssParams = StorageManager.get('session', 'PMLPI');
+                    message = 'PMSSCRPRM01#' + (ssParams !== null ? ssParams + '#' + getIsBranded() : 'EMPTY');
+                    Messenger.send(message);
+                };
+
+                var getParam = function() {
+                    return ssParams;
+                };
+
+                var getIsBranded = function() {
+                    return StorageManager.get('session', 'PMLP_BRANDED');
+                };
+
+                var setIsBranded = function(status) {
+                    StorageManager.set('session', 'PMLP_BRANDED', status);
+                };
+
+                return {
+                    init: init,
+                    getParam: getParam,
+                    isBranded : getIsBranded,
+                    setBranded : setIsBranded
+                };
+            }());
+
+            var TimersManager = (function() {
+                //trans: 'TRANS_TIME',
+                //disp: 'DIPS_TIME',
+                //ntvSlider: 'NTVSLIDER_TIME',
+                //ntv: 'NTV_TIME'
+
+                var transCanShow = -1,
+                    dispCanShow = -1,
+                    ntvSliderCanShow = -1,
+                    ntvCanShow = -1,
+                    tempTrans = -1,
+                    tempDisp = -1,
+                    tempNtvSlider = -1,
+                    tempNtv = -1,
+                    changed = false;
+
+                    // not used - maybe remove it
+                var canShow = function(timerName, timer) {
+                    var timerValue = null;
+
+                    if(!StorageManager.localEnabled()) {
+                        return -1;
+                    }
+
+                    try {
+                        timerValue = StorageManager.get('local', timerName);
+
+                        if(timerValue === null) {
+                            return 1;
+                        } else if((Math.round(new Date().getTime()/1000) - timerValue) > timer) {
+                            removeTimer(timerName);
+                            return 1
+                        }
+
+                        return 0;
+                    } catch(ex) {
+                        return -1;
+                    }
+                }
+                var setTimer = function(timerName) {
+                    StorageManager.set('local', timerName, Math.round(new Date().getTime()/1000));
+                }
+                var removeTimer = function(timerName) {
+                    StorageManager.remove('local', timerName);
+                }
+                var getTimer = function(timerName) {
+                    return StorageManager.get('local', timerName);
+                }
+                var checkTimers = function() {
+                    tempTrans = canShow('TRANS_TIME', Config.taTimer);
+                    tempDisp = canShow('DISP_TIME', Config.ntaTimer);
+                    tempNtvSlider = canShow('NTVSLIDER_TIME', Config.ntvSliderTimer);
+                    tempNtv = canShow('NTV_TIME', Config.ntvTimer);
+                    changed = false;
+
+                    if(tempTrans !== -1 && transCanShow !== tempTrans) {
+                        changed = true;
+                        transCanShow = tempTrans;
+                    }
+
+                    if(tempDisp !== -1 && dispCanShow !== tempDisp) {
+                        changed = true;
+                        dispCanShow = tempDisp;
+                    }
+
+                    if(tempNtvSlider !== -1 && ntvSliderCanShow !== tempNtvSlider) {
+                        changed = true;
+                        ntvSliderCanShow = tempNtvSlider;
+                    }
+
+                    if(tempNtv !== -1 && ntvCanShow !== tempNtv) {
+                        changed = true;
+                        ntvCanShow = tempNtv;
+                    }
+
+                    if(changed) {
+                        Messenger.send('PMTIMERS#' + transCanShow + '#' + dispCanShow + '#' + ntvSliderCanShow + '#' + ntvCanShow);
+                    }
+                }
+
+                var init = function() {
+                    window.setInterval(checkTimers, 300);
+                }
+
+                return {
+                    canShow: canShow,
+                    set: setTimer,
+                    remove: removeTimer,
+                    init: init
+                };
+            }());
+
+            var getConfigParams = function() {
+                var urlParams = document.location.href.split('#');
+
+                    Config.taTimer = parseInt(urlParams[1]),
+                    Config.ntaTimer = parseInt(urlParams[2]);
+            }
+
+            var init = function() {
+                StorageManager.init();
+                Messenger.init();
+                WindowNameManager.init();
+                getConfigParams();
+                TimersManager.init();
+            }
+
+            return {
+                init: init
+            };
+        }()).init();
+
+    </script>
+<link href="bar.css" type="text/css" rel="stylesheet"></head>
+<body marginwidth="0" marginheight="0">
+<script type="text/javascript" src="jquery-1.11.2.min.js"></script>
+<script type="text/javascript" src="inlinekeywords.js"></script>
+<script type="text/javascript" src="pconfig.js"></script>
+<script type="text/javascript">
+var sndpID;
+var sndgID;
+var programData;
+var installedDate;
+var ipAddress;
+//var coupon;
+//var couponCap;
+//var isCheckout;
+var _snd_cdn = "http://cdn.trezaa.com/"; //*** Should add / at end
+var _snd_logs = "http://l.trezaa.com/stbin/coupon.cgi?";
+var _snd_reCDN = "http://cdn.trezaa.com/";
+
+var sndScript = document.createElement('link');
+sndScript.href = _snd_reCDN+"css/bar.css?v=1.0";
+sndScript.type = "text/css";
+sndScript.rel = "stylesheet";
+document.getElementsByTagName("head")[0].appendChild(sndScript);
+</script>
+<script type="text/javascript" src="deals.js"></script>
+
+</body></html>

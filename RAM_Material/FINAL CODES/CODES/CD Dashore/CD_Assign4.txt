@@ -1,0 +1,107 @@
+//**********fourth_assignment.l***************
+alpha [A-Za-z]
+digit [0-9]
+%%
+[ \t\n]  
+switch    return SWITCH;
+case return CASE;
+break return BREAK;
+default return DEFAULT;
+printf return PRINTF;
+{digit}+    return NUM;
+"\"".*"\"" return STRING;
+{alpha}({alpha}|{digit})*    return ID;
+"<="    return LE;
+">="    return GE;
+"=="    return EQ;
+"!="    return NE;
+"||"    return OR;
+"&&"    return AND;
+.    return yytext[0];
+%%
+//**********fourth_assignment.y***************
+%{
+#include <stdio.h>
+#include <stdlib.h>
+%}
+%token ID NUM STRING PRINTF SWITCH CASE DEFAULT BREAK LE GE EQ NE OR AND ELSE
+%right '='
+%left AND OR
+%left '<' '>' LE GE EQ NE
+%left '+''-'
+%left '*''/'
+%right UMINUS
+%left '!'
+%%
+
+S       : ST {printf("Input accepted.\n");exit(0);}
+         ;
+ST     :    SWITCH '(' ID ')' '{' B '}'
+         ;
+   
+B	:	C
+	|   C    D
+	;
+   
+C	:	C    C
+	|   CASE NUM ':' E ';'
+	|   CASE '\''ID'\'' ':' E ';'
+	| 	BREAK ';'
+	;
+
+D	:	DEFAULT ':' E ';' BREAK ';'
+        ;
+    
+E   : ID'='E
+    | E'+'E
+    | E'-'E
+    | E'*'E
+    | E'/'E
+    | E'<'E
+    | E'>'E
+    | E LE E
+    | E GE E
+    | E EQ E
+    | E NE E
+    | E OR E
+    | E AND E
+    | ID
+    | NUM
+    | PRINTF '(''"' STRING '"'')'';'
+    ;
+
+%%
+
+#include "lex.yy.c"
+
+main(int argn,char* arg[])
+{
+int fil;
+FILE *fp=fopen(arg[1],"r");
+	printf("********************************\n");
+	yyin=fp;
+	yyparse();
+	fil = fclose(fp);		
+}
+//*****************(ip.txt)*******************
+switch(a)
+{
+case 'a': a=1;
+    break;
+case 'v': a=3;
+    break;
+   case 1: a=3;
+    break;
+default:a=0;
+break;
+}
+//******************(output : on terminal)******************
+hduser@ubuntu:~/Desktop/CD_Lab/Lab-4$ lex fourth_assignment.l
+hduser@ubuntu:~/Desktop/CD_Lab/Lab-4$ yacc -d fourth_assignment.y
+fourth_assignment.y: warning: 2 shift/reduce conflicts [-Wconflicts-sr]
+hduser@ubuntu:~/Desktop/CD_Lab/Lab-4$ gcc y.tab.c -ll -ly
+hduser@ubuntu:~/Desktop/CD_Lab/Lab-4$ ./a.out '/home/hduser/Desktop/CD_Lab/Lab-4/ip.txt' 
+********************************
+Input accepted.
+hduser@ubuntu:~/Desktop/CD_Lab/Lab-4$ 
+//***********************************************************

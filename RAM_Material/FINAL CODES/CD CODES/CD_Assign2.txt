@@ -1,0 +1,83 @@
+%{
+#include<stdio.h>
+int c_var=0,var=0,fil,sl=0,comment,comment_mult=0;
+FILE *fp2;
+%}
+
+%%
+["}"|")"|";"]?"//".*               {comment = 1; c_var++;}
+"/*"$                              {comment_mult = 1; var = 1;}
+"*/"$                {if(var==1){var = 0;} c_var++;comment_mult = 0;}
+.*[")"|";"|"}"|"{"|"%"|">"] {if(comment==0 && comment_mult==0){fil = 
+
+fputs(yytext, fp2);fil = fputs("\n", fp2);}}
+%.*                           {if(comment==0 && comment_mult==0){fil =       fputs(yytext, fp2);fil = fputs("\n", fp2);}}
+"\n" {if(comment==1){comment=0;}}
+.
+%%
+void main(int argn,char* arg[])
+{
+	fp2=fopen("outputs.txt","w+");
+	FILE *fp=fopen(arg[1],"r");
+	printf("********************************\n");
+	yyin=fp;
+	yylex();
+	printf("No of comments : %d\n",c_var);
+	fil = fclose(fp);
+	fil = fclose(fp2);		
+	printf("********************************\n");
+}
+
+int yywrap()
+{
+	return 1;
+}
+
+%***********Input File******************
+/*
+Assignment : 1
+by Siddharth Dashore
+
+*/
+%{
+#include<stdio.h>
+%}
+
+%%
+[0-9]+ {printf("Number : %s",yytext);}
+[a-z A-Z]* {printf("String : %s",yytext);}
+%%
+int main()//main
+{
+	yylex();
+	return 0;
+}
+//C - Main() function
+int yywrap()
+{
+	return 1;
+}
+
+%***********Output File******************
+%{
+#include<stdio.h>
+%}
+%%
+[0-9]+ {printf("Number : %s",yytext);}
+[a-z A-Z]* {printf("String : %s",yytext);}
+%%
+int main()
+{
+	yylex();
+	return 0;
+}
+int yywrap()
+{
+	return 1;
+}
+
+%***********Terminal Output******************
+********************************
+No of comments : 3
+********************************
+

@@ -1,0 +1,186 @@
+							Assignment no-4
+
+Name-Poonam Bagate
+Roll NO-19(BE-E)
+Problem Statement:-write a yacc specification  to recognize subset of english language sentences
+-------------------------------------------------------------------------------
+%{
+
+#include "y.tab.h"
+
+%}
+
+char [A-Za-z]
+digit[0-9]
+
+%%
+
+[\t ]+                    /* ignore whitespace */ ;
+
+poonam |
+sakshi |
+vit |
+book  |
+lexandyacc |
+studying  {return NOUN;}
+
+is |
+am |
+are |
+were |
+was |
+be |
+being |
+been |
+do |
+does |
+did |
+will |
+would |
+should |
+can |
+could |
+has |
+have |
+had |
+go       { return VERB; }
+
+very |
+simply |
+slowly |
+gently |
+quietly |
+calmly |
+angrily   { return ADVERB; }
+
+to |
+from |
+behind |
+above |
+below |
+in |
+between  |
+below     { return PREPOSITION; }
+
+if |
+then |
+and |
+but |
+or       { return CONJUNCTION; }
+
+their |
+my |
+your |
+his |
+her |
+its      { return ADJECTIVE; }
+
+i |
+you |
+he |
+she  |
+we  |
+they       { return PRONOUN; }
+
+
+{digit}+ return NUMBER;
+{char}({char}|{char})*  return character;
+
+.|\n        { ECHO;/* normal default anyway */ }
+
+
+%% 
+-----------------------------------------------------------------------------
+YACC FILE
+----------------------------------------------------------------------------
+%{
+#include <stdio.h>
+%}
+
+%token NOUN PRONOUN VERB ADVERB ADJECTIVE PREPOSITION CONJUNCTION
+%token NUMBER character
+
+%%
+
+sentence: simple_sentence  { printf("Parsed a simple sentence.\n"); }
+      | compound_sentence { printf("Parsed a compound sentence.\n"); }
+      ;
+
+simple_sentence: subject verb object
+      |     subject verb object prep_phrase
+      ;
+
+compound_sentence: simple_sentence CONJUNCTION simple_sentence
+      		 ;
+
+subject:    NOUN
+      |     PRONOUN
+      |     ADJECTIVE subject
+      ;
+
+verb:       VERB
+      |     ADVERB VERB
+      |     verb VERB
+      ;
+
+object:           NOUN
+      |     ADJECTIVE object
+      ;
+
+prep_phrase:     PREPOSITION NOUN
+      ;
+
+%%
+
+#include "lex.yy.c"
+
+main()
+{
+printf("Enter the sentences:");
+      yyparse();
+      
+}
+
+yyerror(s)
+char *s;
+{
+    fprintf(stderr, "%s\n", s);
+}
+-----------------------------------------------------------------------
+output
+-----------------------------------------------------------------------
+poonam@ubuntu:~/Documents$ lex lab4.l
+
+poonam@ubuntu:~/Documents$ yacc -d lab4.y
+poonam@ubuntu:~/Documents$ gcc y.tab.c -ll -ly
+poonam@ubuntu:~/Documents$ ./a.out
+Enter the sentences: lexandyacc is book
+
+Parsed a simple sentence.
+
+poonam@ubuntu:~/Documents$ lex lab4.l
+poonam@ubuntu:~/Documents$ yacc -d lab4.y
+poonam@ubuntu:~/Documents$ gcc y.tab.c -ll -ly
+poonam@ubuntu:~/Documents$ ./a.out
+Enter the sentences: sakshi is studying in vit
+
+Parsed a simple sentence.
+poonam@ubuntu:~/Documents$ 
+
+
+poonam@ubuntu:~/Documents$ lex lab4.l
+poonam@ubuntu:~/Documents$ yacc -d lab4.y
+poonam@ubuntu:~/Documents$ gcc y.tab.c -ll -ly
+poonam@ubuntu:~/Documents$ ./a.out
+Enter the sentences: i am poonam and i am studying in vit
+
+Parsed a compound sentence.
+
+poonam@ubuntu:~/Documents$ lex lab4.l
+poonam@ubuntu:~/Documents$ yacc -d lab4.y
+poonam@ubuntu:~/Documents$ gcc y.tab.c -ll -ly
+poonam@ubuntu:~/Documents$ ./a.out
+Enter the sentences: 1234
+syntax error
+
+poonam@ubuntu:~/Documents$ 

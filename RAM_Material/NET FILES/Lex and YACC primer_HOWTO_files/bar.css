@@ -1,0 +1,103 @@
+/*
+	Styles for the inline & coupons
+*/
+
+/* Coupon CSS */
+.snd_slider_header{height:24px;width:100%;border-bottom:1px solid #AAA;background-color:#EEE}
+#snd_coupon_header{width:100%}
+#snd_slider_body{height:90px;width:510px;background-color:#FFF;display:block;cursor:pointer}
+#snd_coupon_body{height:110px;width:710px;background-color:#FFF;border-top:1px #438ECE;border-bottom:1px #438ECE;border-left:1px #1A5189;border-right:1px #1A5189;display:block;cursor:pointer}
+.snd_slider_footer{background-color:#FFF;border-top:1px solid #AAA;display:block;background-color:#EEE}
+#snd_coupon_footer{color:#333;font-size:9px;font-family:Helvetica;text-align:right;font-weight:bold;padding-right:10px;line-height: 12px;margin:0;}
+#snd_coupon_message{color:#333;float:left;font-family:Helvetica;font-size:16px;font-weight:bold;text-decoration:none;text-align:center;width:100%;background-color:#EEE;line-height: 16px;}
+.snd_coupon_title h1{font-family:Helvetica;font-size:11pt;font-weight:700;color:#036;text-decoration:underline;margin-right:127px;margin-top:3px;text-align:left;line-height:20px;display:table;text-transform:none;padding:0}
+#snd_coupon_desc h1{width:440px;font-family:Helvetica;font-size:13px;color:#000;margin-top:6px;text-align:left;text-transform:none;padding:0;line-height:20px;font-weight:normal;}
+.snd_slider_ctnr{height:156px;padding-top:4px;display:none;position:fixed;left:50%;bottom:0;margin-left:-255px;z-index:9999999999;border-radius:4px 4px 0 0;-webkit-border-radius:4px 4px 0 0;-moz-border-radius:4px 4px 0 0;box-shadow:0 0 9px #515151;-webkit-box-shadow:0 0 9px #515151;-moz-box-shadow:0 0 9px #515151;background-color:#EEE}
+.snd_coupon_ctnr{margin-left:-355px}
+.snd_coupon_body{width:710px;}
+.snd_buttonMore{padding-left: 0;padding-right: 0;width: 112px;border-radius: 6px 6px 6px 6px;background-color: #FF6633;background-image: linear-gradient(#FF9933, #FF6633);background-size: 100% auto;border: 0 none;color: white;cursor: pointer;font-family: "Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-size: 13.4px;font-weight: bold;line-height: 1.5em;overflow: visible;padding:6px 3px;text-shadow: 0 -1px 1px gray;}
+.snd_buttonMore:hover{background-image: linear-gradient(#FF7F00, #FF4000);background-size: 100% auto;}
+.snd_moreBtnSection{margin-right:15px; margin-top:82px; left:auto; right:0; top:0; position:absolute;}
+.snd_moreBtnSection button{margin:0px;}
+.snd_marginTopMore{margin-top:-20px!important;}
+#btn_getDeal{background-repeat:no-repeat;height:90px;margin-right:15px;width:112px;margin-top:45px;left:auto;right:0;top:0;position:absolute}
+#btn_getCode{background-repeat:no-repeat;height:90px;margin-right:15px;width:112px;margin-top:45px;left:auto;right:0;top:0;position:absolute}
+#couponIcon{background-repeat:no-repeat;margin-left:5px;margin-top:5px;height:30px;width:120px;float:left;}
+.snd_btn_div{float:left;}
+
+/*Rest of the CSS*/
+.snd_in_textHighlight{background:none repeat scroll 0 50% transparent;position: relative;text-decoration:underline !important;border-width:0px;border-bottom-width:1px !important;border-style:solid !important;padding-bottom:1px;font-family:Arial;cursor:pointer;line-height:1.5em}
+.snd_in_textHighlight:hover{border-bottom-width: 3px !important}
+.snd_in_textRed{border-color:#ED0512 !important; color:#ED0512 !important}
+.snd_in_textPurple{border-color:#F200FA !important; color:#F200FA !important}
+.snd_popupDiv{left:0px;width:300px;position:absolute;z-index:999999;margin-left:10px;margin-top:-1px;border:5px solid orange;background-color:#FFF;font-family:Helvetica, Arial, sans-serif;font-size:12px;line-height:16px;color:#000;box-shadow:0 0 5px #515151;padding:0;padding-bottom:5px;text-align:left;}
+#snd_popupDiv{display:none;width:300px;position:absolute;z-index:999999;border:5px solid orange;background-color:#FFF;font-family:Helvetica, Arial, sans-serif;font-size:12px;line-height:16px;color:#000;box-shadow:0 0 5px #515151;padding:0;text-align:left;}
+#snd_popupDiv a{text-decoration:none !important;color:#000;}
+#snd_popupDiv a:hover{text-decoration:none !important;color:#000;}
+.snd_popup{top:-230px}
+.logoSection{height:40px;border-bottom:1px solid #CCC}
+.logoSection_job{height:28px;border-bottom:1px solid #CCC}
+.snd_offerImg{border:1px solid #CCC;padding:3px}
+.snd_offerImg1{border:1px solid #CCC;}
+.snd_popHeading{color:#036;font-family:Arial,sans-serif;font-size:13px;font-weight:700;line-height:15px;overflow:hidden;display:block}
+.snd_jobHeading{color:#00c;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:12px;font-weight:normal;line-height:16px;text-decoration:underline;}
+.snd_curPoint{cursor:pointer;}
+.snd_merchantText{padding-top:5px;font-size: 10px;}
+.snd_priceTxt{color:#647919;margin-bottom:4px;font-size: 10px;}
+.snd_popup-footer{height:17px;border-top:1px solid #CCC;padding-top:3px;}
+.snd_popup-icons{float:right;}
+.snd_popup-icons .snd_helpIcon,.snd_Sicons .snd_helpIcon{margin-right:5px;cursor: pointer;width:15px;height:15px;background:url(../images/icon_help.png);display:inline-block;}
+.snd_popup-icons .snd_closeIcon,.snd_Sicons .snd_closeIcon{margin-right:5px;cursor: pointer;width:15px;height:15px;background:url(../images/icon_close.png);display:inline-block;}
+.snd_Sicons .snd_closeIcon, .snd_Sicons .snd_helpIcon{margin-right:0px}
+.snd_dealImg{width:80px}
+.snd_dealText{width:185px}
+.snd_hideOn{display:none}
+.snd_hide{display:none !important}
+.sndblock{display:block}
+.snd_ml10{margin-left:10px}
+.snd_ml5{margin-left:5px}
+.snd_mt10{margin-top:10px}
+.snd_pam{padding:3px}
+.snd_mrl{margin-right:10px}
+.snd_mjl{padding:3px;padding-left:0px;font-size:11px;}
+.snd_fl{float:left}
+.snd_fr{float:right}
+.snd_jobLogoSection{color:#F10639;font-family:Arial,sans-serif;font-size:12px;font-weight:700;line-height:15px;float:left;width:187px;padding-left:3px;padding-top:8px;text-transform:capitalize;}
+.snd_botJob{font-size:8px;color:#000;padding-left:5px;float:left;}
+.snd_botPData{font-size:8pt;line-height:10px;color:#000;float:left;white-space:nowrap;margin-left:5px;margin-top:2px}
+.snd_icons{position:absolute;right:0;margin-right:5px;white-space:nowrap;margin-top:2px;}
+.snd_icons img{vertical-align:baseline;width:auto;}
+.snd_Sicons{float:right;margin-right:5px;white-space:nowrap;margin-top:2px;}
+.sndSearchBox{border:3px solid #999;background:#FFF;display:inline-block;position:fixed;top:50%;z-index:100000;}
+.sndSearchLink{padding-right:15px;padding-left:5px;padding-top:3px;text-transform:capitalize;padding-bottom:5px;cursor:pointer}
+.sndSearchLink .keyword{color:#0B16ED;font-size:14px;white-space:nowrap;line-height:33px;font-family: sans-serif}
+.blue .snd_search_header{border-bottom:1px solid #5e8cc9}
+.orange .snd_search_header{border-bottom:1px solid orange}
+.green .snd_search_header{border-bottom:1px solid green}
+.blue .sndSearchLink .keyword:hover{color:#5e8cc9}
+.orange .sndSearchLink .keyword:hover{color:orange}
+.green .sndSearchLink .keyword:hover{color:green}	
+.sndSearchLink .desc{color:#555;font-size:12px;font-weight:normal}
+#sndSearchBoxContent{padding-top:5px}
+.snd_search_header{height:25px;}
+.snd_search_footer{height:14px;}
+.snd_search_text{float:left;font-size:9px;color:#333;padding-left:5px;padding-top:5px;font-weight:bold;font-family:Helvetica}
+.sndNeedle{position:absolute;top:-3px;cursor:pointer;background-color:orange;height:100%;box-sizing:content-box}
+.sndArrow{width:25px}
+.sndNeedleLeft{margin-right:-25px;right:0;border-radius:0px 5px 5px 0px}
+.sndNeedleRight{margin-left:-25px;left:0;border-radius:5px 0px 0px 5px;}
+.imgNeedle{display:inline-block;width:25px}
+.imgNeedle.left{background: url('../images/left_nav.png') no-repeat 50% 50%;}
+.imgNeedle.right{background: url('../images/right_nav.png') no-repeat 50% 50%;}
+.sndSearchLeft{text-align:left;left:0}
+.sndSearchRight .sndSearchLink{text-align:right;padding-right:5px;padding-left:15px}
+.sndSearchRight .snd_search_text{float:right;margin-right:5px;}
+.sndSearchRight .snd_Sicons{float:left;margin-left:5px;}
+.sndClr{clear:both;float:none;}
+#icon_close:hover,#iconS_close:hover,#iconS_close1:hover{cursor:pointer}
+
+#rsln_coupon_body{height:100px;background-color:#FFF;border-top:1px #438ECE;border-bottom:1px #438ECE;border-left:1px #1A5189;border-right:1px #1A5189;display:block}
+.rsln_coupon_body{width:640px;}
+.rsln_slider_ctnr{height:141px;padding-top:4px;display:none;position:fixed;left:50%;bottom:0;margin-left:-300px;z-index:9999999999;border-radius:4px 4px 0 0;-webkit-border-radius:4px 4px 0 0;-moz-border-radius:4px 4px 0 0;box-shadow:0 0 9px #515151;-webkit-box-shadow:0 0 9px #515151;-moz-box-shadow:0 0 9px #515151;background-color:#EEE}
+#snd_coupon_message h1{font-size:16px;line-height:20px;font-weight: bold;margin: 0;padding:0;text-transform:none;font-family: Helvetica;color:#333;}
+#snd_coupon_footer h1{color:#333;font-size:9px;font-family:Helvetica;text-align:right;font-weight:bold;padding-right:10px;line-height: 12px;margin:0;}

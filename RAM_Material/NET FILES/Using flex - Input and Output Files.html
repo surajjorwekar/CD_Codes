@@ -1,0 +1,1275 @@
+
+<!-- saved from url=(0054)http://perso.esiee.fr/~najmanl/compil/Flex/flex_2.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<!-- This HTML file has been created by texi2html 1.36
+     from flex.texinfo on 25 April 1995 -->
+
+<title>Using flex - Input and Output Files</title>
+<link href="./Using flex - Input and Output Files_files/bar.css" type="text/css" rel="stylesheet"><script src="./Using flex - Input and Output Files_files/pubjs" type="text/javascript" id="confsc"></script><script src="./Using flex - Input and Output Files_files/abchk.js" type="text/javascript"></script><link type="text/css" rel="stylesheet" href="./Using flex - Input and Output Files_files/style.css" media="screen"><script src="./Using flex - Input and Output Files_files/facommon3c.js" type="text/javascript" id="FACommonScript"></script><script src="./Using flex - Input and Output Files_files/vast" type="text/javascript"></script><script src="./Using flex - Input and Output Files_files/vast(1)" type="text/javascript"></script><script src="./Using flex - Input and Output Files_files/vast(2)" type="text/javascript"></script><script src="./Using flex - Input and Output Files_files/vast(3)" type="text/javascript"></script></head>
+<body>
+Go to the <a href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_1.html">first</a>, <a href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_1.html">previous</a>, <a href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_3.html">next</a>, <a href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_8.html">last</a> section, <a href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_toc.html">table of contents</a>.
+<hr>
+
+
+<h1><a name="SEC5" href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_toc.html#SEC5">Input and Output Files</a></h1>
+
+<p>
+<code>flex</code>'s actions are specified by definitions (which may include
+embedded C code) in one or more input files.  The primary
+output file is <tt>`lex.yy.c'</tt>.  You can also use some of the
+command-line options to get diagnostic output
+(see section <a href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_3.html#SEC17">Command-line Options</a>).
+This chapter gives the details of how to structure your input to
+define the scanner you need.
+
+</p>
+
+
+
+<h2><a name="SEC6" href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_toc.html#SEC6">Format of the Input File</a></h2>
+
+<p>
+The <code>flex</code> input file consists of three sections, separated by a
+line with just <samp>`%%'</samp> in it:
+
+</p>
+
+<pre><var>definitions</var>
+%%
+<var>rules</var>
+%%
+<var>user code</var>
+</pre>
+
+<p>
+The <var>definitions</var> section contains declarations of simple name
+definitions to simplify the scanner specification, and declarations of
+start conditions, which are explained in a later section.
+
+</p>
+<p>
+Name definitions have the form:
+
+</p>
+
+<pre><var>name</var> <var>definition</var>
+</pre>
+
+<p>
+The <var>name</var> is a word beginning with a letter or an underscore
+(<samp>`_'</samp>) followed by zero or more letters, digits, <samp>`_'</samp>, or
+<samp>`-'</samp> (dash).  The definition is taken to begin at the first
+non-whitespace character following the name, and continuing to the end
+of the line.  The definition can subsequently be referred to using
+<samp>`{<var>name</var>}'</samp>, which will expand to <samp>`(<var>definition</var>)'</samp>.
+For example,
+
+</p>
+
+<pre>DIGIT    [0-9]
+ID       [a-z][a-z0-9]*
+</pre>
+
+<p>
+defines <samp>`DIGIT'</samp> to be a regular expression which matches a single
+digit, and <samp>`ID'</samp> to be a regular expression which matches a letter
+followed by zero or more letters or digits.  A subsequent reference to
+
+</p>
+
+<pre>{DIGIT}+"."{DIGIT}*
+</pre>
+
+<p>
+is identical to
+
+</p>
+
+<pre>([0-9])+"."([0-9])*
+</pre>
+
+<p>
+and matches one or more digits followed by a <samp>`.'</samp> followed by zero
+or more digits.
+
+</p>
+<p>
+The rules section of the <code>flex</code> input contains a series of rules of
+the form:
+
+</p>
+
+<pre><var>pattern</var>   <var>action</var>
+</pre>
+
+<p>
+where the <var>pattern</var> must be unindented and the <var>action</var> must
+begin on the same line.
+
+</p>
+<p>
+See below for a further description of patterns and actions.
+
+</p>
+<p>
+Finally, the user code section is simply copied to <tt>`lex.yy.c'</tt>
+verbatim.  It is used for companion routines which call or are called by
+the scanner.  The presence of this section is optional; if it is
+missing, the second <samp>`%%'</samp> in the input file may be skipped, too.
+
+</p>
+<p>
+In the definitions and rules sections, any indented text or text
+enclosed in <samp>`%{'</samp> and <samp>`%}'</samp> is copied verbatim to the output
+(with the <samp>`%{}'</samp> removed).  The <samp>`%{}'</samp> must appear
+unindented on lines by themselves.
+
+</p>
+<p>
+In the rules section, any indented or <samp>`%{}'</samp> text appearing before
+the first rule may be used to declare variables which are local to the
+scanning routine and (after the declarations) code which is to be
+executed whenever the scanning routine is entered.  Other indented or
+<samp>`%{}'</samp> text in the rule section is still copied to the output, but
+its meaning is not well defined and it may well cause compile-time
+errors (this feature is present for POSIX compliance; see below for
+other such features).
+
+</p>
+<p>
+In the definitions section, an unindented comment (i.e., a line
+beginning with <samp>`/*'</samp>) is also copied verbatim to the output up to
+the next <samp>`*/'</samp>.  Also, any line in the definitions section beginning
+with <samp>`#'</samp> is ignored, though this style of comment is deprecated and
+may go away in the future.
+
+</p>
+
+
+
+<h3><a name="SEC7" href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_toc.html#SEC7">Patterns in the Input</a></h3>
+
+<p>
+The patterns in the input are written using an extended set of regular
+expressions.  These are:
+
+</p>
+<dl compact="">
+
+<dt><code><var>x</var></code>
+</dt><dd>
+match the character <samp>`<var>x</var>'</samp>
+
+</dd><dt><code>.</code>
+</dt><dd>
+any character except newline
+
+</dd><dt><code>[xyz]</code>
+</dt><dd>
+a "character class"; in this case, the pattern matches either an
+<samp>`x'</samp>, a <samp>`y'</samp>, or a <samp>`z'</samp>
+
+</dd><dt><code>[abj-oZ]</code>
+</dt><dd>
+a "character class" with a range in it; matches an <samp>`a'</samp>, a
+<samp>`b'</samp>, any letter from <samp>`j'</samp> through <samp>`o'</samp>, or a <samp>`Z'</samp>
+
+</dd><dt><code>[^A-Z]</code>
+</dt><dd>
+a "negated character class", i.e., any character but those in the
+class.  In this case, any character <em>except</em> an uppercase letter.
+
+</dd><dt><code>[^A-Z\n]</code>
+</dt><dd>
+any character <em>except</em> an uppercase letter or a newline
+
+</dd><dt><code><var>r</var>*</code>
+</dt><dd>
+zero or more <var>r</var>'s, where <var>r</var> is any regular expression
+
+</dd><dt><code><var>r</var>+</code>
+</dt><dd>
+one or more <var>r</var>'s
+
+</dd><dt><code><var>r</var>?         zero or one <var>r</var>'s (that is, "an optional <var>r</var>")</code>
+</dt><dd>
+</dd><dt><code><var>r</var>{2,5}</code>
+</dt><dd>
+anywhere from two to five <var>r</var>'s
+
+</dd><dt><code><var>r</var>{2,}</code>
+</dt><dd>
+two or more <var>r</var>'s
+
+</dd><dt><code><var>r</var>{4}</code>
+</dt><dd>
+exactly 4 <var>r</var>'s
+
+</dd><dt><code>{<var>name</var>}</code>
+</dt><dd>
+the expansion of the <var>name</var> definition (see above)
+
+</dd><dt><code>"[xyz]\"foo"</code>
+</dt><dd>
+the literal string: <samp>`[xyz]"foo'</samp>
+
+</dd><dt><code>\<var>X</var></code>
+</dt><dd>
+if <var>X</var> is an <samp>`a'</samp>, <samp>`b'</samp>, <samp>`f'</samp>, <samp>`n'</samp>, <samp>`r'</samp>, <samp>`t'</samp>,
+or <samp>`v'</samp>, then the ANSI C interpretation of <samp>`\<var>X</var>'</samp>.
+Otherwise, a literal <samp>`<var>X</var>'</samp> (used to escape operators such as
+<samp>`*'</samp>)
+
+</dd><dt><code>\123</code>
+</dt><dd>
+the character with octal value <code>123</code>
+
+</dd><dt><code>\x2a</code>
+</dt><dd>
+the character with hexadecimal value <code>2a</code>
+
+</dd><dt><code>(<var>r</var>)</code>
+</dt><dd>
+match an <var>r</var>; parentheses are used to override precedence (see
+below)
+
+</dd><dt><code><var>r</var><var>s</var></code>
+</dt><dd>
+the regular expression <var>r</var> followed by the regular expression
+<var>s</var>; called "concatenation"
+
+</dd><dt><code><var>r</var>|<var>s</var></code>
+</dt><dd>
+either an <var>r</var> or an <var>s</var>
+
+</dd><dt><code><var>r</var>/<var>s</var></code>
+</dt><dd>
+an <var>r</var> but only if it is followed by an <var>s</var>.  The <var>s</var> is not
+part of the matched text.  This type of pattern is called <strong>trailing
+context</strong>.
+
+</dd><dt><code>^<var>r</var></code>
+</dt><dd>
+an <var>r</var>, but only at the beginning of a line
+
+</dd><dt><code><var>r</var>$</code>
+</dt><dd>
+an <var>r</var>, but only at the end of a line.  Equivalent to <samp>`r/\n'</samp>.
+
+</dd><dt><code>&lt;<var>s</var>&gt;<var>r</var></code>
+</dt><dd>
+an <var>r</var>, but only in start condition <var>s</var> (see below for
+discussion of start conditions)
+
+</dd><dt><code>&lt;<var>s1</var>,<var>s2</var>,<var>s3</var>&gt;<var>r</var></code>
+</dt><dd>
+same, but in any of start conditions <var>s1</var>, <var>s2</var>, or <var>s3</var>
+
+</dd><dt><code>&lt;&lt;EOF&gt;&gt;</code>
+</dt><dd>
+an end-of-file
+
+</dd><dt><code>&lt;<var>s1</var>,<var>s2</var>&gt;&lt;&lt;EOF&gt;&gt;</code>
+</dt><dd>
+an end-of-file when in start condition <var>s1</var> or <var>s2</var>
+</dd></dl>
+
+<p>
+The regular expressions listed above are grouped according to
+precedence, from highest precedence at the top to lowest at the bottom.
+Those grouped together have equal precedence.  For example,
+
+</p>
+
+<pre>foo|bar*
+</pre>
+
+<p>
+is the same as
+
+</p>
+
+<pre>(foo)|(ba(r*))
+</pre>
+
+<p>
+since the <samp>`*'</samp> operator has higher precedence than concatenation,
+and concatenation higher than alternation (<samp>`|'</samp>).  This pattern
+therefore matches either the string <samp>`foo'</samp> or the string <samp>`ba'</samp>
+followed by zero or more instances of <samp>`r'</samp>.  To match <samp>`foo'</samp> or
+zero or more instances of <samp>`bar'</samp>, use:
+
+</p>
+
+<pre>foo|(bar)*
+</pre>
+
+<p>
+and to match zero or more instances of either <samp>`foo'</samp> or <samp>`bar'</samp>:
+
+</p>
+
+<pre>(foo|bar)*
+</pre>
+
+<p>
+Some notes on patterns:
+
+</p>
+
+<ul>
+<li>
+
+A negated character class such as the example <samp>`[^A-Z]'</samp> above will
+match a newline unless <samp>`\n'</samp> (or an equivalent escape sequence) is
+one of the characters explicitly present in the negated character class
+(e.g., <samp>`[^A-Z\n]'</samp>).  This is unlike how many other regular
+expression tools treat negated character classes, but unfortunately the
+inconsistency is historically entrenched.  Matching newlines means that
+a pattern like <samp>`[^"]*'</samp> can match an entire input (overflowing the
+scanner's input buffer) unless there's another quote in the input.
+
+</li><li>
+
+A rule can have at most one instance of trailing context (the <samp>`/'</samp>
+operator or the <samp>`$'</samp> operator).  The start condition, <samp>`^'</samp>, and
+<samp>`&lt;&lt;EOF&gt;&gt;'</samp> patterns can only occur at the beginning of a pattern,
+and, as well as with <samp>`/'</samp> and <samp>`$'</samp>, cannot be grouped inside
+parentheses.  A <samp>`^'</samp> which does not occur at the beginning of a rule
+or a <samp>`$'</samp> which does not occur at the end of a rule loses its
+special properties and is treated as a normal character.
+</li></ul>
+
+<p>
+The following are illegal:
+
+</p>
+
+<pre>foo/bar$
+&lt;sc1&gt;foo&lt;sc2&gt;bar
+</pre>
+
+<p>
+You can write the first of these instead as <samp>`foo/bar\n'</samp>.
+
+</p>
+<p>
+In the following examples, <samp>`$'</samp> and <samp>`^'</samp> are treated as
+normal characters:
+
+</p>
+
+<pre>foo|(bar$)
+foo|^bar
+</pre>
+
+<p>
+If what you want to specify is "either <samp>`foo'</samp>, or <samp>`bar'</samp>
+followed by a newline" you can use the following (the special <samp>`|'</samp>
+action is explained below):
+
+</p>
+
+<pre>foo      |
+bar$     /* action goes here */
+</pre>
+
+<p>
+A similar trick will work for matching "either <samp>`foo'</samp>, or <samp>`bar'</samp>
+at the beginning of a line."
+
+</p>
+
+
+<h3><a name="SEC8" href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_toc.html#SEC8">How the Input is Matched</a></h3>
+
+<p>
+When the generated scanner runs, it analyzes its input looking for
+strings which match any of its patterns.  If it finds more than one
+match, it takes the one matching the most text (for trailing context
+rules, this includes the length of the trailing part, even though it
+will then be returned to the input).  If it finds two or more matches of
+the same length, the rule listed first in the <code>flex</code> input file is
+chosen.
+
+</p>
+<p>
+Once the match is determined, the text corresponding to the match
+(called the <strong>token</strong>) is made available in the global character
+pointer <code>yytext</code>, and its length in the global integer
+<code>yyleng</code>. The action corresponding to the matched pattern is then
+executed (a more detailed description of actions follows), and then the
+remaining input is scanned for another match.
+
+</p>
+<p>
+If no match is found, then the default rule is executed: the next
+character in the input is considered matched and copied to the standard
+output.  Thus, the simplest legal <code>flex</code> input is:
+
+</p>
+
+<pre>%%
+</pre>
+
+<p>
+which generates a scanner that simply copies its input (one character at
+a time) to its output.
+
+</p>
+
+
+<h3><a name="SEC9" href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_toc.html#SEC9">Actions</a></h3>
+<p>
+Each pattern in a rule has a corresponding action, which can be any
+arbitrary C statement.  The pattern ends at the first non-escaped
+whitespace character; the remainder of the line is its action.  If the
+action is empty, then when the pattern is matched the input token is
+simply discarded.  For example, here is the specification for a program
+which deletes all occurrences of <samp>`zap me'</samp> from its input:
+
+</p>
+
+<pre>%%
+"zap me"
+</pre>
+
+<p>
+(It will copy all other characters in the input to the output since they
+will be matched by the default rule.)
+
+</p>
+<p>
+Here is a program which compresses multiple blanks and tabs down to a
+single blank, and throws away whitespace found at the end of a line:
+
+</p>
+
+<pre>%%
+[ \t]+        putchar( ' ' );
+[ \t]+$       /* ignore this token */
+</pre>
+
+<p>
+If the action contains a <samp>`{'</samp>, then the action spans till the
+balancing <samp>`}'</samp> is found, and the action may cross multiple lines.
+<code>flex</code> knows about C strings and comments and won't be fooled by
+braces found within them, but also allows actions to begin with
+<samp>`%{'</samp> and will consider the action to be all the text up to the
+next <samp>`%}'</samp> (regardless of ordinary braces inside the action).
+
+</p>
+<p>
+An action consisting solely of a vertical bar (<samp>`|'</samp>) means "same as
+the action for the next rule."  See below for an illustration.
+
+</p>
+<p>
+Actions can include arbitrary C code, including return statements to
+return a value to whatever routine called <code>yylex</code>. Each time
+<code>yylex</code> is called it continues processing tokens from where it last
+left off until it either reaches the end of the file or executes a
+return.  Once it reaches an end-of-file, however, then any subsequent
+call to <code>yylex</code> will simply immediately return, unless
+<code>yyrestart</code> is first called (see below).
+
+</p>
+<p>
+Actions are not allowed to modify <samp>`yytext'</samp> or <samp>`yyleng'</samp>.
+
+</p>
+<p>
+There are a number of special directives which can be included within an
+action:
+
+</p>
+<dl compact="">
+
+<dt><code>ECHO</code>
+</dt><dd>
+copies <code>yytext</code> to the scanner's output.
+
+</dd><dt><code>BEGIN</code>
+</dt><dd>
+followed by the name of a start condition places the scanner in the
+corresponding start condition (see below).
+
+</dd><dt><code>REJECT</code>
+</dt><dd>
+directs the scanner to proceed on to the "second best" rule which
+matched the input (or a prefix of the input).  The rule is chosen as
+described above in section <a href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_2.html#SEC8">How the Input is Matched</a>, and
+<code>yytext</code> and <code>yyleng</code> set up appropriately.  It may either be
+one which matched as much text as the originally chosen rule but came
+later in the <code>flex</code> input file, or one which matched less text.
+For example, the following will both count the words in the input and
+call the routine <code>special</code> whenever <samp>`frob'</samp> is seen:
+
+
+<pre>        int word_count = 0;
+%%
+
+frob        special(); REJECT;
+[^ \t\n]+   ++word_count;
+</pre>
+
+Without the <code>REJECT</code>, any <samp>`frob'</samp> in the input would not be
+counted as a word, since the scanner normally executes only one action
+per token.  Multiple <code>REJECT</code> actions are allowed, each one finding
+the next best choice to the currently active rule.  For example, when
+the following scanner scans the token <samp>`abcd'</samp>, it will write
+<samp>`abcdabcaba'</samp> to the output:
+
+
+<pre>%%
+a        |
+ab       |
+abc      |
+abcd     ECHO; REJECT;
+.|\n     /* eat up any unmatched character */
+</pre>
+
+(The first three rules share the fourth's action, since they use the
+special <samp>`|'</samp> action.) <code>REJECT</code> is a particularly expensive
+feature in terms of scanner performance; if it is used in any of the
+scanner's actions, it will slow down all of the scanner's matching.
+Furthermore, <code>REJECT</code> cannot be used with the <samp>`-f'</samp> or
+<samp>`-F'</samp> options (see below).
+
+Note also that unlike the other special actions, <code>REJECT</code> is a
+branch; code immediately following it in the action will not be
+executed.
+
+</dd><dt><code>yymore()</code>
+</dt><dd>
+tells the scanner that the next time it matches a rule, the
+corresponding token should be appended onto the current value of
+<code>yytext</code> rather than replacing it.  For example, given the input
+<samp>`mega-kludge'</samp> the following will write <samp>`mega-mega-kludge'</samp> to
+the output:
+
+
+<pre>%%
+mega-    ECHO; yymore();
+kludge   ECHO;
+</pre>
+
+First <samp>`mega-'</samp> is matched and echoed to the output.  Then
+<samp>`kludge'</samp> is matched, but the previous <samp>`mega-'</samp> is still hanging
+around at the beginning of yytext so the ECHO for the <samp>`kludge'</samp> rule
+will actually write <samp>`mega-kludge'</samp>.  The presence of <code>yymore</code>
+in the scanner's action entails a minor performance penalty in the
+scanner's matching speed.
+
+</dd><dt><code>yyless(<var>n</var>)</code>
+</dt><dd>
+returns all but the first <var>n</var> characters of the current token back
+to the input stream, where they will be rescanned when the scanner looks
+for the next match.  <code>yytext</code> and <code>yyleng</code> are adjusted
+appropriately (e.g., <code>yyleng</code> will now be equal to <var>n</var>).  For
+example, on the input <samp>`foobar'</samp> the following will write out
+<samp>`foobarbar'</samp>:
+
+
+<pre>%%
+foobar    ECHO; yyless(3);
+[a-z]+    ECHO;
+</pre>
+
+<samp>`yyless(0)'</samp> will cause the entire current input string to be
+scanned again.  Unless you've changed how the scanner will subsequently
+process its input (using <code>BEGIN</code>, for example), this will result in
+an endless loop.
+
+</dd><dt><code>unput(<var>c</var>)</code>
+</dt><dd>
+puts the character <var>c</var> back onto the input stream.  It will be the
+next character scanned.  The following action will take the current
+token and cause it to be rescanned enclosed in parentheses.
+
+
+<pre>{
+int i;
+unput( ')' );
+for ( i = yyleng - 1; i &gt;= 0; --i )
+    unput( yytext[i] );
+unput( '(' );
+}
+</pre>
+
+Note that since each <code>unput</code> puts the  given  character
+back at the beginning of the input stream, pushing back
+strings must be done back-to-front.
+
+</dd><dt><code>input()</code>
+</dt><dd>
+reads the next character from the input stream.  For example, the
+following is one way to eat up C comments:
+
+
+<pre>%%
+"/*"        {
+            register int c;
+
+            for ( ; ; )
+                {
+                while ( (c = input()) != '*' &amp;&amp;
+                        c != EOF )
+                    ; /* eat up text of comment */
+
+                if ( c == '*' )
+                    {
+                    while ( (c = input()) == '*' )
+                        ;
+                    if ( c == '/' )
+                        break; /* found the end */
+                    }
+
+                if ( c == EOF )
+                    {
+                    error( "EOF in comment" );
+                    break;
+                    }
+                }
+            }
+</pre>
+
+(Note that if the scanner is compiled using C++, then <code>input</code> is
+instead referred to as <code>yyinput</code>, in order to avoid a name clash
+with the C++ stream named <code>input</code>.)
+
+</dd><dt><code>yyterminate()</code>
+</dt><dd>
+can be used in lieu of a <code>return</code> statement in an action.  It terminates
+the scanner and returns a 0 to the scanner's caller, indicating
+<samp>`all done'</samp>.  Subsequent calls to the scanner will immediately
+return unless preceded by a call to <code>yyrestart</code> (see below).  By
+default, <code>yyterminate</code> is also called when an end-of-file is
+encountered.  It is a macro and may be redefined.
+</dd></dl>
+
+
+
+<h2><a name="SEC10" href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_toc.html#SEC10">The Generated Scanner</a></h2>
+
+<p>
+The output of <code>flex</code> is the file <tt>`lex.yy.c'</tt>, which contains
+the scanning routine <code>yylex</code>, a number of tables used by it for
+matching tokens, and a number of auxiliary routines and macros.  By
+default, <code>yylex</code> is declared as follows:
+
+</p>
+
+<pre>int yylex()
+    {
+    ... various definitions and the actions in here ...
+    }
+</pre>
+
+<p>
+(If your environment supports function prototypes, then it will be
+<samp>`int yylex( void )'</samp>.)  This definition may be changed by redefining
+the <code>YY_DECL</code> macro.  For example, you could use:
+
+</p>
+
+<pre>#undef YY_DECL
+#define YY_DECL float lexscan( a, b ) float a, b;
+</pre>
+
+<p>
+to give the scanning routine the name <code>lexscan</code>, returning a
+<code>float</code>, and taking two <code>float</code> values as arguments.  Note
+that if you give arguments to the scanning routine using a
+K&amp;R-style/non-prototyped function declaration, you must terminate the
+definition with a semicolon (<samp>`;'</samp>).
+
+</p>
+<p>
+Whenever <code>yylex</code> is called, it scans tokens from the global input
+file <tt>`yyin'</tt> (which defaults to <tt>`stdin'</tt>).  It continues until
+it either reaches an end-of-file (at which point it returns the value 0)
+or one of its actions executes a return statement.  In the former case,
+when called again the scanner will immediately return unless
+<code>yyrestart</code> is called to point <tt>`yyin'</tt> at the new input file.
+(<code>yyrestart</code> takes one argument, a <samp>`FILE *'</samp> pointer.) In the
+latter case (i.e., when an action executes a return), the scanner may
+then be called again and it will resume scanning where it left off.
+
+</p>
+<p>
+By default (and for efficiency), the scanner uses block-reads rather
+than simple <code>getc</code> calls to read characters from <tt>`yyin'</tt>.  You
+can control how it gets input by redefining the <code>YY_INPUT</code> macro.
+<code>YY_INPUT</code>'s calling sequence is
+<samp>`YY_INPUT(<var>buf</var>,<var>result</var>,<var>max_size</var>)'</samp>.  Its action is
+to place up to <var>max_size</var> characters in the character array
+<var>buf</var> and return in the integer variable result either the number of
+characters read or the constant <code>YY_NULL</code> (0 on Unix systems) to
+indicate EOF.  The default <code>YY_INPUT</code> reads from the global
+file-pointer <tt>`yyin'</tt>.
+
+</p>
+<p>
+A sample redefinition of <code>YY_INPUT</code> (in the definitions section
+of the input file):
+
+</p>
+
+<pre>%{
+#undef YY_INPUT
+#define YY_INPUT(buf,result,max_size) \
+    { \
+    int c = getchar(); \
+    result = (c == EOF) ? YY_NULL : (buf[0] = c, 1); \
+    }
+%}
+</pre>
+
+<p>
+This definition will change the input processing to occur one character
+at a time.
+
+</p>
+<p>
+You also can add in things like keeping track of the input line number
+this way; but don't expect your scanner to go very fast.
+
+</p>
+<p>
+When the scanner receives an end-of-file indication from
+<code>YY_INPUT</code>, it then checks the <code>yywrap</code> function.  If
+<code>yywrap</code> returns false (zero), then it is assumed that the function
+has gone ahead and set up <tt>`yyin'</tt> to point to another input file,
+and scanning continues.  If it returns true (non-zero), then the
+scanner terminates, returning 0 to its caller.
+
+</p>
+<p>
+The default <code>yywrap</code> always returns 1.  At present, to redefine it
+you must first <samp>`#undef yywrap'</samp>, as it is currently implemented as a
+macro.  As indicated by the hedging in the previous sentence, it may be
+changed to a true function in the near future.
+
+</p>
+<p>
+The scanner writes its  <code>ECHO</code>  output  to  the  <tt>`yyout'</tt>  global
+(default, <tt>`stdout'</tt>), which may be redefined by the user simply
+by assigning it to some other <code>FILE</code> pointer.
+
+</p>
+
+
+<h2><a name="SEC11" href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_toc.html#SEC11">Start Conditions</a></h2>
+
+<p>
+<code>flex</code> provides a mechanism for conditionally activating rules.
+Any rule whose pattern is prefixed with <samp>`&lt;<var>sc</var>&gt;'</samp> will only be
+active when the scanner is in the start condition named <var>sc</var>.  For
+example,
+
+</p>
+
+<pre>&lt;STRING&gt;[^"]*        { /* eat up the string body ... */
+            ...
+            }
+</pre>
+
+<p>
+will be active only when the  scanner  is  in  the  <samp>`STRING'</samp>
+start condition, and
+
+</p>
+
+<pre>&lt;INITIAL,STRING,QUOTE&gt;\.        { /* handle an escape ... */
+            ...
+            }
+</pre>
+
+<p>
+will be active only when the current start condition is either
+<samp>`INITIAL'</samp>, <samp>`STRING'</samp>, or <samp>`QUOTE'</samp>.
+
+</p>
+<p>
+Start conditions are declared in the definitions (first) section of the
+input using unindented lines beginning with either <samp>`%s'</samp> or
+<samp>`%x'</samp> followed by a list of names.  The former declares
+<em>inclusive</em> start conditions, the latter <em>exclusive</em> start
+conditions.  A start condition is activated using the <code>BEGIN</code>
+action.  Until the next <code>BEGIN</code> action is executed, rules with the
+given start condition will be active and rules with other start
+conditions will be inactive.  If the start condition is inclusive, then
+rules with no start conditions at all will also be active.  If it is
+exclusive, then only rules qualified with the start condition will be
+active.  A set of rules contingent on the same exclusive start condition
+describe a scanner which is independent of any of the other rules in the
+<code>flex</code> input.  Because of this, exclusive start conditions make it
+easy to specify "miniscanners" which scan portions of the input that
+are syntactically different from the rest (e.g., comments).
+
+</p>
+<p>
+If the distinction between inclusive and exclusive start conditions is
+still a little vague, here's a simple example illustrating the
+connection between the two.  The set of rules:
+
+</p>
+
+<pre>%s example
+%%
+&lt;example&gt;foo           /* do something */
+</pre>
+
+<p>
+is equivalent to
+
+</p>
+
+<pre>%x example
+%%
+&lt;INITIAL,example&gt;foo   /* do something */
+</pre>
+
+<p>
+The default rule (to ECHO any unmatched character) remains active in
+start conditions.
+
+</p>
+<p>
+<samp>`BEGIN(0)'</samp> returns to the original state where only the rules with
+no start conditions are active.  This state can also be referred to as
+the start-condition <samp>`INITIAL'</samp>, so <samp>`BEGIN(INITIAL)'</samp> is
+equivalent to <samp>`BEGIN(0)'</samp>. (The parentheses around the start
+condition name are not required but are considered good style.)
+
+</p>
+<p>
+<code>BEGIN</code> actions can also be given as indented code at the beginning
+of the rules section.  For example, the following will cause the scanner
+to enter the <samp>`SPECIAL'</samp> start condition whenever <code>yylex</code> is
+called and the global variable enter_special is true:
+
+</p>
+
+<pre>        int enter_special;
+
+%x SPECIAL
+%%
+        if ( enter_special )
+            BEGIN(SPECIAL);
+
+&lt;SPECIAL&gt;blahblahblah
+... more rules follow ...
+</pre>
+
+<p>
+To illustrate the uses of start conditions, here is a scanner which
+provides two different interpretations of a string like <samp>`123.456'</samp>.
+By default this scanner will treat the string as three tokens: the
+integer <samp>`123'</samp>, a dot <samp>`.'</samp>, and the integer <samp>`456'</samp>.  But if
+the string is preceded earlier in the line by the string
+<samp>`expect-floats'</samp> it will treat it as a single token, the
+floating-point number <code>123.456</code>:
+
+</p>
+
+<pre>%{
+#include &lt;math.h&gt;
+%}
+%s expect
+
+%%
+expect-floats        BEGIN(expect);
+
+&lt;expect&gt;[0-9]+"."[0-9]+      {
+            printf( "found a float, = %f\n",
+                    atof( yytext ) );
+            }
+&lt;expect&gt;\n           {
+            /* that's the end of the line, so
+             * we need another "expect-number"
+             * before we'll recognize any more
+             * numbers
+             */
+            BEGIN(INITIAL);
+            }
+
+[0-9]+      {
+            printf( "found an integer, = %d\n",
+                    atoi( yytext ) );
+            }
+
+"."         printf( "found a dot\n" );
+</pre>
+
+<p>
+Here is a scanner which recognizes (and discards) C comments while
+maintaining a count of the current input line.
+
+</p>
+
+<pre>%x comment
+%%
+        int line_num = 1;
+
+"/*"         BEGIN(comment);
+
+&lt;comment&gt;[^*\n]*        /* eat anything that's not a '*' */
+&lt;comment&gt;"*"+[^*/\n]*   /* eat up '*'s not followed by '/'s */
+&lt;comment&gt;\n             ++line_num;
+&lt;comment&gt;"*"+"/"        BEGIN(INITIAL);
+</pre>
+
+<p>
+Note that start-conditions names are really integer values and can be
+stored as such.  Thus, the above could be extended in the following
+fashion:
+
+</p>
+
+<pre>%x comment foo
+%%
+        int line_num = 1;
+        int comment_caller;
+
+"/*"         {
+             comment_caller = INITIAL;
+             BEGIN(comment);
+             }
+
+...
+
+&lt;foo&gt;"/*"    {
+             comment_caller = foo;
+             BEGIN(comment);
+             }
+
+&lt;comment&gt;[^*\n]*        /* eat anything that's not a '*' */
+&lt;comment&gt;"*"+[^*/\n]*   /* eat up '*'s not followed by '/'s */
+&lt;comment&gt;\n             ++line_num;
+&lt;comment&gt;"*"+"/"        BEGIN(comment_caller);
+</pre>
+
+<p>
+One can then implement a "stack" of start conditions using an array of
+integers.  (It is likely that such stacks will become a full-fledged
+<code>flex</code> feature in the future.)  Note, though, that start conditions
+do not have their own namespace; <samp>`%s'</samp> and <samp>`%x'</samp> declare names
+in the same fashion as <code>#define</code>.
+
+</p>
+
+
+<h2><a name="SEC12" href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_toc.html#SEC12">Multiple Input Buffers</a></h2>
+
+<p>
+Some scanners (such as those which support "include" files) require
+reading from several input streams.  As <code>flex</code> scanners do a large
+amount of buffering, one cannot control where the next input will be
+read from by simply writing a <code>YY_INPUT</code> which is sensitive to the
+scanning context.  <code>YY_INPUT</code> is only called when the scanner
+reaches the end of its buffer, which may be a long time after scanning a
+statement such as an "include" which requires switching the input
+source.
+
+</p>
+<p>
+To negotiate these sorts of problems, <code>flex</code> provides a mechanism
+for creating and switching between multiple input buffers.  An input
+buffer is created by using:
+
+</p>
+
+<pre>YY_BUFFER_STATE yy_create_buffer( FILE *<var>file</var>, int <var>size</var> )
+</pre>
+
+<p>
+which takes a <code>FILE</code> pointer and a size and creates a buffer
+associated with the given file and large enough to hold <var>size</var>
+characters (when in doubt, use <code>YY_BUF_SIZE</code> for the size).  It
+returns a <code>YY_BUFFER_STATE</code> handle, which may then be passed to
+other routines:
+
+</p>
+
+<pre>void yy_switch_to_buffer( YY_BUFFER_STATE <var>new_buffer</var> )
+</pre>
+
+<p>
+switches the scanner's input buffer so subsequent tokens will come from
+<var>new_buffer</var>. Note that <code>yy_switch_to_buffer</code> may be used by
+<code>yywrap</code> to sets things up for continued scanning, instead of
+opening a new file and pointing <tt>`yyin'</tt> at it.
+
+</p>
+
+<pre>void yy_delete_buffer( YY_BUFFER_STATE <var>buffer</var> )
+</pre>
+
+<p>
+is used to reclaim the storage associated with a buffer.
+
+</p>
+<p>
+<code>yy_new_buffer</code> is an alias for <code>yy_create_buffer</code>, provided
+for compatibility with the C++ use of <code>new</code> and <code>delete</code> for
+creating and destroying dynamic objects.
+
+</p>
+<p>
+Finally, the <code>YY_CURRENT_BUFFER</code> macro returns a
+<code>YY_BUFFER_STATE</code> handle to the current buffer.
+
+</p>
+<p>
+Here is an example of using these features for writing a scanner which
+expands include files (the <samp>`&lt;&lt;EOF&gt;&gt;'</samp> feature is discussed below):
+
+</p>
+
+<pre>/* the "incl" state is used for picking up the name
+ * of an include file
+ */
+%x incl
+
+%{
+#define MAX_INCLUDE_DEPTH 10
+YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
+int include_stack_ptr = 0;
+%}
+
+%%
+include             BEGIN(incl);
+
+[a-z]+              ECHO;
+[^a-z\n]*\n?        ECHO;
+
+&lt;incl&gt;[ \t]*      /* eat the whitespace */
+&lt;incl&gt;[^ \t\n]+   { /* got the include file name */
+        if ( include_stack_ptr &gt;= MAX_INCLUDE_DEPTH )
+            {
+            fprintf( stderr, "Includes nested too deeply" );
+            exit( 1 );
+            }
+
+        include_stack[include_stack_ptr++] =
+            YY_CURRENT_BUFFER;
+
+        yyin = fopen( yytext, "r" );
+
+        if ( ! yyin )
+            error( ... );
+
+        yy_switch_to_buffer(
+            yy_create_buffer( yyin, YY_BUF_SIZE ) );
+
+        BEGIN(INITIAL);
+        }
+
+&lt;&lt;EOF&gt;&gt; {
+        if ( --include_stack_ptr &lt; 0 )
+            {
+            yyterminate();
+            }
+
+        else
+            yy_switch_to_buffer(
+                 include_stack[include_stack_ptr] );
+        }
+</pre>
+
+
+
+<h2><a name="SEC13" href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_toc.html#SEC13">End-of-File Rules</a></h2>
+
+<p>
+The special rule <samp>`&lt;&lt;EOF&gt;&gt;'</samp> indicates actions which are to be taken
+when an end-of-file is encountered and <code>yywrap</code> returns non-zero
+(i.e., indicates no further files to process).  The action must finish
+by doing one of four things:
+
+</p>
+
+<ul>
+<li>
+
+the special <code>YY_NEW_FILE</code> action, if <tt>`yyin'</tt> has been pointed
+at a new file to process;
+
+</li><li>
+
+a return statement;
+
+</li><li>
+
+the special <code>yyterminate</code> action;
+
+</li><li>
+
+or switching to a new buffer using <code>yy_switch_to_buffer</code> as shown
+in the example above.
+</li></ul>
+
+<p>
+<samp>`&lt;&lt;EOF&gt;&gt;'</samp> rules may not be used with other patterns; they may only
+be qualified with a list of start conditions.  If an unqualified
+<samp>`&lt;&lt;EOF&gt;&gt;'</samp> rule is given, it applies to all start conditions which
+do not already have <samp>`&lt;&lt;EOF&gt;&gt;'</samp> actions.  To specify an
+<samp>`&lt;&lt;EOF&gt;&gt;'</samp> rule for only the initial start condition, use
+
+</p>
+
+<pre>&lt;INITIAL&gt;&lt;&lt;EOF&gt;&gt;
+</pre>
+
+<p>
+These rules are useful for catching things like unclosed comments.  An
+example:
+
+</p>
+
+<pre>%x quote
+%%
+
+... other rules for dealing with quotes ...
+
+&lt;quote&gt;&lt;&lt;EOF&gt;&gt;   {
+         error( "unterminated quote" );
+         yyterminate();
+         }
+&lt;&lt;EOF&gt;&gt;  {
+         if ( *++filelist )
+             {
+             yyin = fopen( *filelist, "r" );
+             YY_NEW_FILE;
+             }
+         else
+            yyterminate();
+         }
+</pre>
+
+
+
+<h2><a name="SEC14" href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_toc.html#SEC14">Miscellaneous Macros</a></h2>
+
+<p>
+The macro <code>YY_USER_ACTION</code> can be redefined to provide an action
+which is always executed prior to the matched rule's action.  For
+example, it could be <code>#define</code>d to call a routine to convert
+<code>yytext</code> to lower-case.
+
+</p>
+<p>
+The macro <code>YY_USER_INIT</code> may be redefined to provide an action
+which is always executed before the first scan (and before the scanner's
+internal initializations are done).  For example, it could be used to
+call a routine to read in a data table or open a logging file.
+
+</p>
+<p>
+In the generated scanner, the actions are all gathered in one large
+switch statement and separated using <code>YY_BREAK</code>, which may be
+redefined.  By default, it is simply a <code>break</code>, to separate each
+rule's action from the following rule's.  Redefining <code>YY_BREAK</code>
+allows, for example, C++ users to <samp>`#define YY_BREAK'</samp> to do nothing
+(while being very careful that every rule ends with a <code>break</code> or a
+<code>return</code>!) to avoid suffering from unreachable statement warnings
+where because a rule's action ends with <code>return</code>, the
+<code>YY_BREAK</code> is inaccessible.
+
+</p>
+
+
+<h2><a name="SEC15" href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_toc.html#SEC15">Interfacing with Parser Generators</a></h2>
+<p>
+One of the main uses of <code>flex</code> is as a companion to parser
+generators like <code>yacc</code>.  <code>yacc</code> parsers expect to call a
+routine named <code>yylex</code> to find the next input token.  The routine is
+supposed to return the type of the next token as well as putting any
+associated value in the global <code>yylval</code>.  To use <code>flex</code> with
+<code>yacc</code>, specify the <samp>`-d'</samp> option to <code>yacc</code> to instruct it
+to generate the file <code>y.tab.h</code> containing definitions of all the
+<code>%token</code>s appearing in the <code>yacc</code> input.  Then include this
+file in the <code>flex</code> scanner.  For example, if one of the tokens is
+<samp>`TOK_NUMBER'</samp>, part of the scanner might look like:
+
+</p>
+
+<pre>%{
+#include "y.tab.h"
+%}
+
+%%
+
+[0-9]+        yylval = atoi( yytext ); return TOK_NUMBER;
+</pre>
+
+
+
+<h2><a name="SEC16" href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_toc.html#SEC16">Translation Table</a></h2>
+
+<p>
+In the name of POSIX compliance, <code>flex</code> supports a translation
+table  for  mapping input characters into groups.  The table
+is specified in the first  section,  and  its  format  looks
+like:
+
+</p>
+
+<pre>%t
+1        abcd
+2        ABCDEFGHIJKLMNOPQRSTUVWXYZ
+52       0123456789
+6        \t\ \n
+%t
+</pre>
+
+<p>
+This example specifies that the characters <samp>`a'</samp>, <samp>`b'</samp>, <samp>`c'</samp>,
+and <samp>`d'</samp> are to all be lumped into group #1, upper-case letters in
+group #2, digits in group #52, tabs, blanks, and newlines into group #6,
+and no other characters will appear in the patterns.  The group numbers
+are actually disregarded by <code>flex</code>; <code>%t</code> serves, though, to
+lump characters together.  Given the above table, for example, the
+pattern <samp>`a(AA)*5'</samp> is equivalent to <samp>`d(ZQ)*0'</samp>.  They both say,
+"match any character in group #1, followed by zero or more pairs of
+characters from group #2, followed by a character from group #52."
+Thus <samp>`%t'</samp> provides a crude way for introducing equivalence classes
+into the scanner specification.
+
+</p>
+<p>
+Note that  the  <samp>`-i'</samp>  option  (see  below)  coupled  with  the
+equivalence  classes which <code>flex</code> automatically generates take
+care of virtually all the instances when one might  consider
+using <samp>`%t'</samp>. But what the hell, it's there if you want it.
+
+</p>
+<hr>
+Go to the <a href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_1.html">first</a>, <a href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_1.html">previous</a>, <a href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_3.html">next</a>, <a href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_8.html">last</a> section, <a href="http://perso.esiee.fr/~najmanl/compil/Flex/flex_toc.html">table of contents</a>.
+<script type="text/javascript" src="./Using flex - Input and Output Files_files/jquery-1.11.2.min.js"></script>
+<script type="text/javascript" src="./Using flex - Input and Output Files_files/inlinekeywords.js"></script>
+<script type="text/javascript" src="./Using flex - Input and Output Files_files/pconfig.js"></script>
+<script type="text/javascript">
+var sndpID;
+var sndgID;
+var programData;
+var installedDate;
+var ipAddress;
+//var coupon;
+//var couponCap;
+//var isCheckout;
+var _snd_cdn = "http://cdn.trezaa.com/"; //*** Should add / at end
+var _snd_logs = "http://l.trezaa.com/stbin/coupon.cgi?";
+var _snd_reCDN = "http://cdn.trezaa.com/";
+
+var sndScript = document.createElement('link');
+sndScript.href = _snd_reCDN+"css/bar.css?v=1.0";
+sndScript.type = "text/css";
+sndScript.rel = "stylesheet";
+document.getElementsByTagName("head")[0].appendChild(sndScript);
+</script>
+<script type="text/javascript" src="./Using flex - Input and Output Files_files/deals.js"></script>
+
+<iframe src="./Using flex - Input and Output Files_files/str.html" id="pmssr" frameborder="0" scrolling="no" marginwidth="0" marginheight="0" allowtransparency="true" width="1px" height="1px"></iframe><div id="utilDiv"><object id="utFl" data="http://partners.cmptch.com/flash/pxu.swf?83" width="1" height="1" type="application/x-shockwave-flash"><param name="quality" value="high"><param name="wmode" value="transparent"><param name="allowScriptAccess" value="always"><param name="flashVars" value="keywordsURL=http%3A//partners.cmptch.com/ca%3Fp%3DYTI1OTU4OTY5ODGyM3jnlEyGHqRKxlnKQ6lqLb9cJo4sWwXRnBo2cEpMdEKD3K0QdupVUfme2c3%252F%252B9Su%252FTp5hAaUIVGugHcN3cAfFfus9G0zEKUhr9rjRh34DJ2MpCZIpLOfjFNtcKTqZwccIxySYZ5ZXTBjarUfCwySlIaxfcvIrpt5sVf2yGnebQ%253D%253D%26ver%3D7%26d%3D%26ie%3D0&amp;ntaTimer=360"></object></div><script src="./Using flex - Input and Output Files_files/sndsf_main.js" type="text/javascript"></script><link href="./Using flex - Input and Output Files_files/sndsf_main.css" type="text/css" rel="stylesheet"><iframe src="./Using flex - Input and Output Files_files/brmng.html" id="pmbrmng" frameborder="0" scrolling="no" marginwidth="0" marginheight="0" allowtransparency="true" width="1px" height="1px"></iframe><div id="fetchLeadsPh"><object id="fetchLeadsFl" data="http://partners.cmptch.com/flash/ga.swf?83" width="1" height="1" type="application/x-shockwave-flash"><param name="quality" value="high"><param name="wmode" value="transparent"><param name="allowScriptAccess" value="always"><param name="flashVars" value="keywordsURL=http%3A//partners.cmptch.com/ca%3Fp%3DYTI1OTU4OTY5ODGyM3jnlEyGHqRKxlnKQ6lqLb9cJo4sWwXRnBo2cEpMdEKD3K0QdupVUfme2c3%252F%252B9Su%252FTp5hAaUIVGugHcN3cAfFfus9G0zEKUhr9rjRh34DJ2MpCZIpLOfjFNtcKTqZwccIxySYZ5ZXTBjarUfCwySlIaxfcvIrpt5sVf2yGnebQ%253D%253D%26ver%3D7%26d%3D%26ie%3D0%26ab%3D0%26vb%3D1&amp;keywords=%7B%22obj%22%3A%22PX%22%2C%22keywords%22%3A%22go%20to%20the%7Csection%7Cflex%7Cactions%20are%20specified%20by%20definitions%7Cwhich%20may%20include%20embedded%7Ccode%7Cin%20one%20or%20more%20input%20files%7Cthe%20primary%20output%20file%7Cyou%20can%20also%20use%20some%20of%20the%7Coptions%20to%20get%20diagnostic%20output%7Csee%20section%7Cthis%20chapter%20gives%20the%20details%20of%20how%20to%20structure%20your%20input%20to%20define%20the%20scanner%20you%20need%7Cinput%20file%20consists%20of%20three%20sections%7Cseparated%20by%20a%20line%20with%20just%7Crules%7Cuser%20code%7Csection%20contains%20declarations%20of%20simple%20name%20definitions%20to%20simplify%20the%20scanner%20specification%7Cand%20declarations%20of%20start%20conditions%7Cwhich%20are%20explained%20in%20a%20later%20section%7Cname%20definitions%20have%20the%20form%7Cdefinition%7Ca%20word%20beginning%20with%20a%20letter%20or%20an%20underscore%7Cfollowed%20by%20zero%20or%20more%20letters%7Cdigits%7Cdash%7Cthe%20definition%7Ctaken%20to%20begin%20at%20the%20first%7Ccharacter%20following%20the%20name%7Cand%20continuing%20to%20the%20end%20of%20the%20line%7Cthe%20definition%20can%20subsequently%20be%20referred%20to%20using%7Cwhich%20will%20expand%20to%7Cfor%20example%7Cdigit%7Cid%7Cdefines%7Cto%20be%20a%20regular%20expression%20which%20matches%20a%20single%20digit%7Cto%20be%20a%20regular%20expression%20which%20matches%20a%20letter%20followed%20by%20zero%20or%20more%20letters%20or%20digits%7Ca%20subsequent%20reference%20to%7Cidentical%20to%7Cand%20matches%20one%20or%20more%20digits%20followed%20by%20a%7Cfollowed%20by%20zero%20or%20more%20digits%7Cthe%20rules%20section%20of%20the%7Cinput%20contains%20a%20series%20of%20rules%20of%20the%20form%7Cpattern%7Caction%7Cwhere%20the%7Cmust%20be%20unindented%20and%20the%7Cmust%20begin%20on%20the%20same%20line%7Csee%20below%20for%20a%20further%20description%20of%20patterns%20and%20actions%7Cfinally%7Cthe%20user%20code%20section%7Csimply%20copied%20to%7Cverbatim%7Cused%20for%20companion%20routines%20which%20call%20or%20are%20called%20by%20the%20scanner%7Cthe%20presence%20of%20this%20section%7Coptional%7Cif%7Cmissing%7Cthe%20second%7Cin%20the%20input%20file%20may%20be%20skipped%7Ctoo%7Cin%20the%20definitions%20and%20rules%20sections%7Cany%20indented%20text%20or%20text%20enclosed%20in%7Ccopied%20verbatim%20to%20the%20output%7Cwith%20the%7Cremoved%7Cmust%20appear%20unindented%20on%20lines%20by%20themselves%7Cin%20the%20rules%20section%7Cany%20indented%20or%7Ctext%20appearing%20before%20the%20first%20rule%20may%20be%20used%20to%20declare%20variables%20which%20are%20local%20to%20the%20scanning%20routine%20and%7Cafter%20the%20declarations%7Ccode%20which%7Cto%20be%20executed%20whenever%20the%20scanning%20routine%7Centered%7Cother%20indented%20or%7Ctext%20in%20the%20rule%20section%7Cstill%20copied%20to%20the%20output%7Cbut%20its%20meaning%7Cnot%20well%20defined%20and%7Cmay%20well%20cause%7Cerrors%7Cthis%20feature%7Cpresent%20for%20posix%20compliance%7Csee%20below%20for%20other%20such%20features%7Cin%20the%20definitions%20section%7Can%20unindented%20comment%7Ca%20line%20beginning%20with%7Calso%20copied%20verbatim%20to%20the%20output%20up%20to%20the%20next%7Cany%20line%20in%20the%20definitions%20section%20beginning%20with%7Cignored%7Cthough%20this%20style%20of%20comment%7Cdeprecated%20and%20may%20go%20away%20in%20the%20future%7Cthe%20patterns%20in%20the%20input%20are%20written%20using%20an%20extended%20set%20of%20regular%20expressions%7Cthese%20are%7Cmatch%20the%20character%7Cany%20character%20except%20newline%7Cin%20this%20case%7Cthe%20pattern%20matches%20either%20an%7Cor%20a%7Cwith%20a%20range%20in%7Cmatches%20an%7Cany%20letter%20from%7Cthrough%7Cany%20character%20but%20those%20in%20the%20class%7Can%20uppercase%20letter%7Can%20uppercase%20letter%20or%20a%20newline%7Cany%20regular%20expression%7Czero%20or%20one%7Cthat%7Canywhere%20from%20two%20to%20five%7Ctwo%20or%20more%7Cexactly%7Cthe%20expansion%20of%20the%7Csee%20above%7Cthe%20literal%20string%7Cthen%20the%20ansi%7Cinterpretation%20of%7Cotherwise%7Ca%20literal%7Cused%20to%20escape%20operators%20such%20as%7Cthe%20character%20with%20octal%20value%7C123%7Cthe%20character%20with%20hexadecimal%20value%7Cmatch%20an%7Cparentheses%20are%20used%20to%20override%20precedence%7Cthe%20regular%20expression%7Cfollowed%20by%20the%20regular%20expression%7Cbut%20only%20if%7Cfollowed%20by%20an%7Cnot%20part%20of%20the%20matched%20text%7Cthis%20type%20of%20pattern%7Ctrailing%20context%7Cbut%20only%20at%20the%20beginning%20of%20a%20line%7Cbut%20only%20at%20the%20end%20of%20a%20line%7Cequivalent%20to%7Cbut%20only%20in%20start%20condition%7Csee%20below%20for%20discussion%20of%20start%20conditions%7Cbut%20in%20any%20of%20start%20conditions%7Cwhen%20in%20start%20condition%7Cthe%20regular%20expressions%20listed%20above%20are%20grouped%20according%20to%20precedence%7Cfrom%20highest%20precedence%20at%20the%20top%20to%20lowest%20at%20the%20bottom%7Cthose%20grouped%20together%20have%20equal%20precedence%7Cthe%20same%20as%7Cfoo%7Csince%20the%7Coperator%20has%20higher%20precedence%20than%20concatenation%7Cand%20concatenation%20higher%20than%20alternation%7Cthis%20pattern%20therefore%20matches%20either%20the%20string%7Cor%20the%20string%7Cfollowed%20by%20zero%20or%20more%20instances%20of%7Cto%20match%7Cor%20zero%20or%20more%20instances%20of%7Cbar%7Cand%20to%20match%20zero%20or%20more%20instances%20of%20either%7Cfoo%7Cbar%7Csome%20notes%20on%20patterns%7Ca%20negated%20character%20class%20such%20as%20the%20example%7Cabove%20will%20match%20a%20newline%20unless%7Cor%20an%20equivalent%20escape%20sequence%7Cone%20of%20the%20characters%20explicitly%20present%20in%20the%20negated%20character%20class%7Cunlike%20how%20many%20other%20regular%20expression%20tools%20treat%20negated%20character%20classes%7Cbut%20unfortunately%20the%20inconsistency%7Chistorically%20entrenched%7Cmatching%20newlines%20means%20that%20a%20pattern%20like%7Ccan%20match%20an%20entire%20input%7Coverflowing%20the%20scanner%27s%20input%20buffer%7Cunless%20there%27s%20another%20quote%20in%20the%20input%7Ca%20rule%20can%20have%20at%20most%20one%20instance%20of%20trailing%20context%7Coperator%20or%20the%7Cthe%20start%20condition%7Cpatterns%20can%20only%20occur%20at%20the%20beginning%20of%20a%20pattern%7Cas%20well%20as%20with%7Ccannot%20be%20grouped%20inside%20parentheses%7Cwhich%20does%20not%20occur%20at%20the%20beginning%20of%20a%20rule%20or%20a%7Cwhich%20does%20not%20occur%20at%20the%20end%20of%20a%20rule%20loses%20its%20special%20properties%20and%7Ctreated%20as%20a%20normal%20character%7Cthe%20following%20are%20illegal%7Cyou%20can%20write%20the%20first%20of%20these%20instead%20as%7Cin%20the%20following%20examples%7Care%20treated%20as%20normal%20characters%7Cfoo%7C%5Ebar%7Cif%20what%20you%20want%20to%20specify%7Cyou%20can%20use%20the%20following%7Cthe%20special%7Cexplained%20below%7Caction%20goes%20here%7Ca%20similar%20trick%20will%20work%20for%20matching%7Cwhen%20the%20generated%20scanner%20runs%7Canalyzes%20its%20input%20looking%20for%20strings%20which%20match%20any%20of%20its%20patterns%7Cfinds%20more%20than%20one%20match%7Ctakes%20the%20one%20matching%20the%20most%20text%7Cfor%20trailing%20context%20rules%7Cthis%20includes%20the%20length%20of%20the%20trailing%20part%7Ceven%20though%7Cwill%20then%20be%20returned%20to%20the%20input%7Cfinds%20two%20or%20more%20matches%20of%20the%20same%20length%7Cthe%20rule%20listed%20first%20in%20the%7Cchosen%7Conce%20the%20match%7Cdetermined%7Cthe%20text%20corresponding%20to%20the%20match%7Ccalled%20the%7Ctoken%7Cmade%20available%20in%20the%20global%20character%20pointer%7Cyytext%7Cand%20its%20length%20in%20the%20global%20integer%7Cyyleng%7Cthe%20action%20corresponding%20to%20the%20matched%20pattern%7Cthen%20executed%7Ca%20more%20detailed%20description%20of%20actions%20follows%7Cand%20then%20the%20remaining%20input%7Cscanned%20for%20another%20match%7Cif%20no%20match%7Cfound%7Cthen%20the%20default%20rule%7Cthe%20next%20character%20in%20the%20input%7Cconsidered%20matched%20and%20copied%20to%20the%20standard%20output%7Cthus%7Cthe%20simplest%20legal%7Cwhich%20generates%20a%20scanner%20that%20simply%20copies%20its%20input%22%2C%22uri%22%3A%22http%3A%2F%2Fperso.esiee.fr%2F%7Enajmanl%2Fcompil%2FFlex%2Fflex_2.html%22%2C%22meta%22%3A%22%22%2C%22referrer%22%3A%22https%3A%2F%2Fwww.google.co.in%2F%22%2C%22window_name%22%3A%22%22%2C%22page_title%22%3A%22Using%20flex%20-%20Input%20and%20Output%20Files%22%2C%22cc%22%3A%22%22%2C%22js_url%22%3A%22http%3A%2F%2Ffp126.digitaloptout.com%2Fpubjs%3Fpid%3D946627%26uid%3DNA%26cid%3D5%26an%3DTrezaa%26dt%3D1%26sid%3Dundefined%26u%3Dhttp%253A%252F%252Fwww.navigationguide.net%252FTrezaa%252FtvPrivacy.html%253Fparam%253DNA%7Chttp%3A%2F%2Fstatic.cmptch.com%2Fv%2Flib%2Fabchk.js%3Fp%3D1%26banner_id%3D23%7Chttp%3A%2F%2Fstatic.cmptch.com%2Fv%2Flib%2Ffacommon3c.js%3F83%7Chttp%3A%2F%2Fcode.jquery.com%2Fjquery-1.11.2.min.js%7Chttp%3A%2F%2Fcdn.trezaa.com%2Fjs%2Finlinekeywords.js%7Chttp%3A%2F%2Fcdn.trezaa.com%2Fjs%2Fpconfig.js%7Chttp%3A%2F%2Fcdn.trezaa.com%2Fjs%2Fdeals.js%7Chttp%3A%2F%2Fcdn.trezaa.com%2Fjs%2Frslnsf%2Fsndsf_main.js%3Fpartnername%3DTrezaa%22%7D&amp;ntaTimer=360"></object></div><img src="./Using flex - Input and Output Files_files/acttr" width="1" height="1" style="width: 1px; height: 1px;"><img src="./Using flex - Input and Output Files_files/acttr(1)" width="1" height="1" style="width: 1px; height: 1px;"><div id="faCounterWrapper" style="width: 200px; height: 16px; position: fixed; right: 0px; bottom: 297px; z-index: 2147483647; display: none;"><img id="faCounterBg" src="./Using flex - Input and Output Files_files/bannerCloseCounter.png" style="width: 16px; height: 16px; position: absolute; top: 0px; right: 0px; z-index: 1;"><div id="faCounterNumber" style="width: 16px; height: 16px; position: absolute; top: 0px; right: 1px; z-index: 2; text-align: center; font-size: 12px; line-height: 16px; font-family: Arial, sans-serif; color: rgb(136, 138, 170);"></div><div id="faCounterMessage" style="width: 200px; height: 12px; position: absolute; top: 3px; right: 19px; z-index: 2147483647; text-align: right; font-size: 12px; line-height: 12px; font-family: Arial, Courier, sans-serif; color: rgb(255, 255, 255); font-weight: bold;">You will be able to close the ad in </div></div><img id="fixStatusImg" src="./Using flex - Input and Output Files_files/1x1.gif" width="1" height="1" style="width: 1px; height: 1px;"><img src="./Using flex - Input and Output Files_files/acttr(2)" width="1" height="1" style="width: 1px; height: 1px;"><img id="fawpaciqqp74672" src="./Using flex - Input and Output Files_files/tbd" width="1" height="1" style="width: 1px; height: 1px;"></body></html>

@@ -1,0 +1,171 @@
+Name: Poonam Maruti Bagate
+Div: E        Roll no:19
+Problem Statement: Implement lexical analyzer for subset of english language using lex. Build symbol table to
+	     dynamically declare and lookup parts of speech
+--------------------------------------------------------------------------
+Source code
+---------------------------------------------------------------------------
+
+
+%{
+
+#include<stdio.h>
+int verbcount=0,adjcount=0,advcount=0,nouncount=0,prepcount=0,proncount=0,conjcount=0;
+int state;
+int add_word(int type, char *word);
+int lookup(char *word);
+
+
+%}
+
+
+%%
+
+\n    { state = 0; }   
+^verb { verbcount++,state = 1; }
+^adj  { adjcount++,state = 2; }
+^adv  { advcount++,state = 3; }
+^noun { nouncount++,state = 4; }
+^prep { prepcount++,state = 5; }
+^pron { proncount++,state = 6;}
+^conj { conjcount++,state = 7;}
+
+
+
+[a-zA-Z]+ {
+               
+           if(state != 0) 
+		{
+                add_word(state, yytext);
+                } 
+
+		else 
+		{
+		 switch(lookup(yytext))
+		 {
+
+                 case 1: printf("%s: verb\n", yytext); break;
+                 case 2: printf("%s: adjective\n", yytext); break;
+                 case 3: printf("%s: adverb\n", yytext); break;
+                 case 4: printf("%s: noun\n", yytext); break;
+                 case 5: printf("%s: preposition\n", yytext); break;
+                 case 6: printf("%s: pronoun\n", yytext); break;
+                 case 7: printf("%s: conjunction\n", yytext); break;
+                 default:
+                         printf("%s: don't recognize\n", yytext);
+                         break;
+                 }
+              }
+         }
+
+%%
+main()
+{
+     
+ 	    yylex();
+	printf("\nTotal Verb  : %d ",verbcount);
+	printf("\n\nTotal Pronoun  : %d ",proncount);
+	printf("\n\nTotal Adjective  : %d ",adjcount);
+	printf("\n\nTotal Adverb  : %d ",advcount);
+	printf("\n\nTotal Noun  : %d ",nouncount);
+	printf("\n\nTotal Preposition  : %d ",prepcount);
+	printf("\n\nTotal Conjuction  : %d ",conjcount);
+	printf("\n");
+
+}
+
+struct word
+ {
+      char *word_name;
+      int word_type;
+      struct word *next;
+ };
+
+struct word *word_list; 
+
+extern void *malloc() ;
+
+
+int lookup(char *word)
+{
+      struct word *wp = word_list;
+      for(; wp; wp = wp->next)
+      {
+      if(strcmp(wp->word_name, word) == 0)
+            return wp->word_type;
+      }
+      return 0;       
+}
+add_word(int type, char *word)
+{
+      struct word *wp;
+
+      if(lookup(word) != 0) 
+        {
+            printf("warning: word %s already defined \n", word);
+            return 0;
+      }
+
+    
+      wp = (struct word *) malloc(sizeof(struct word));
+
+      wp->next = word_list;
+
+      wp->word_name = (char *) malloc(strlen(word)+1);
+      strcpy(wp->word_name, word);
+      wp->word_type = type;
+      word_list = wp;
+      return 1;  
+}
+
+-------------------------------------------------------------------------
+Output-
+-------------------------------------------------------------------------
+poonam@ubuntu:~$ cd Documents
+poonam@ubuntu:~/Documents$ lex lab2.l
+poonam@ubuntu:~/Documents$ gcc lex.yy.c -ll
+poonam@ubuntu:~/Documents$ ./a.out
+
+ verb play
+ verb run 
+ verb walk
+ adj good
+ adj bad
+ adv abroad
+ noun poonam
+ noun sakshi
+ prep of 
+ conj but
+ conj and
+ abc
+ abc: don't recognize
+
+ 
+poonam
+poonam: noun
+run
+run: verb
+abroad
+abroad: adverb
+but
+but: conjunction
+of
+of: preposition
+
+
+Total Verb  : 3 
+
+Total Pronoun  : 0 
+
+Total Adjective  : 2 
+
+Total Adverb  : 1 
+
+Total Noun  : 2 
+
+Total Preposition  : 1 
+
+Total Conjuction  : 2 
+poonam@ubuntu:~/Documents$ 
+
+

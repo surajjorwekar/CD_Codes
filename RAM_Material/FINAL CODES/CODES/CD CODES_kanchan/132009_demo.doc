@@ -1,0 +1,270 @@
+﻿
+
+                               Assignment.No:5
+
+
+Name : Kanchan Kharabi
+Roll No. 39
+title: Generate intermediate code for input "c" language assignment statement.
+________________________________________________________________________________
+
+
+_______________
+  
+/* LEX FILE */
+_______________
+
+%{
+#include "y.tab.h"
+extern char yyval;
+%}
+
+NUMBER [0-9]+
+LETTER [a-zA-Z]+
+
+%%
+
+
+{NUMBER} {yylval.place=(char)yytext[0]; return NUMBER;}
+{LETTER} {yylval.place=(char)yytext[0];return LETTER;}
+
+\n {return 0;}
+. {return yytext[0];}
+
+%%
+__________________________
+
+     /* yacc file */
+__________________________
+
+%{
+
+  #include<stdio.h>
+  #include<string.h>
+  #include<stdlib.h>
+
+void ThreeAddressCode();
+void qudraple();
+char AddToTable(char ,char, char);
+
+   int ind=0;
+   int temp=0;
+
+struct incod
+{
+char opd1;
+char opd2;
+char opr;
+};
+%}
+
+%union
+{
+char place;
+}
+
+%token <place> LETTER NUMBER
+%type <place> expr
+%left '-''+'
+%right '*''/'
+
+%%
+
+ statement: LETTER '=' expr ';' {AddToTable((char)$1,(char)$3,'=');}
+ | expr ';'
+ ;
+
+ expr: expr '+' expr {$$ = AddToTable((char)$1,(char)$3,'+');}
+ | expr '-' expr {$$ = AddToTable((char)$1,(char)$3,'-');}
+ | expr '*' expr {$$ = AddToTable((char)$1,(char)$3,'*');}
+ | expr '/' expr {$$ = AddToTable((char)$1,(char)$3,'/');}
+ | '(' expr ')' {$$ = (char)$2;}
+ | NUMBER {$$ = (char)$1;}
+ | LETTER {$$ = (char)$1;}
+ ;
+
+%%
+
+ yyerror(char *s)
+ {
+   printf("%s",s);
+   exit(0);
+ }
+
+struct incod code[20];
+
+  int id=0;
+
+ char AddToTable(char opd1,char opd2,char opr)
+ {
+  code[ind].opd1=opd1;
+  code[ind].opd2=opd2;
+  code[ind].opr=opr;
+  ind++;
+  temp++;
+  return temp;
+}
+
+void ThreeAddressCode()
+{
+  int cnt=0;
+  temp++;
+
+
+ printf("\n\n\n\t\t\t\t THREE ADDRESS CODE\n");
+printf("\t\t____________________________________________________\n");
+ printf("\t\t RESULT	  OPERAND1	OPERATOR	OPERAND2\n");
+printf("\t\t____________________________________________________\n\n");
+ while(cnt<ind)
+ {
+  printf("\t\t T%d  : = \t",temp);
+  if(isalpha(code[cnt].opd1))
+  printf("%c\t",code[cnt].opd1);
+   else
+   {
+    printf("T%d\t",temp);}
+    printf("   %c\t\t",code[cnt].opr);
+
+      if(isalpha(code[cnt].opd2))
+         printf("   %c",code[cnt].opd2);
+           else
+             {
+               int tp=temp;
+               tp--;
+               printf("   T%d",tp);
+             }
+
+    printf("\n"); 
+    cnt++;
+    temp++;
+  }
+
+}
+
+void quadraple()
+{
+  int cnt=0;
+  temp++;
+
+  printf("\n\n\n\n \t\t\t\t   QUADRAPLE CODE\n");
+printf("\t   ______________________________________________________________\n");
+printf("\t   ID	OPERATOR	OPERAND1	OPERAND2	RESULT\n");
+printf("\t   ______________________________________________________________\n");
+while(cnt<ind)
+{
+printf("\t");
+//printf("%c : = \t",temp);
+ printf("    %d",id);
+ printf("\t");
+ printf("  %c",code[cnt].opr);
+ printf("\t\t");
+
+if(isalpha(code[cnt].opd1))
+printf(" %c\t",code[cnt].opd1);
+
+else
+{printf(" T%d\t",temp);}
+
+//printf("%c\t",code[cnt].opr);
+
+if(isalpha(code[cnt].opd2))
+printf(" \t%c\t",code[cnt].opd2);
+else
+{
+int tpl=temp;
+tpl--;
+
+printf(" \tT%d\t",tpl);}
+
+printf(" \tT%d",temp);
+
+printf("\n");
+cnt++;
+temp++;
+id++;
+
+}
+}
+
+
+main()
+{
+      printf("\nEnter the Expression: ");
+      yyparse();
+      temp=0;
+      ThreeAddressCode();
+      temp=0;
+      quadraple();
+
+}
+
+      yywrap()
+         {
+               return 1;
+         }
+
+
+______________________
+ 
+      /* Output: */
+______________________
+
+uban@uban-HP-Pavilion-15-Notebook-PC:~/Desktop/intermediate$ lex ac.l
+uban@uban-HP-Pavilion-15-Notebook-PC:~/Desktop/intermediate$ yacc -d ac.yuban@uban-HP-Pavilion-15-Notebook-PC:~/Desktop/intermediate$ cc lex.yy.c y.tab.c -ll -ly
+uban@uban-HP-Pavilion-15-Notebook-PC:~/Desktop/intermediate$ ./a.out
+
+Enter the Expression: A=(B+C);
+
+
+
+				 THREE ADDRESS CODE
+		____________________________________________________
+		 RESULT	  OPERAND1	OPERATOR	OPERAND2
+		____________________________________________________
+
+		 T1  : = 	     B	    +		    C
+		 T2  : = 	     A	    =		    T1
+
+
+
+
+ 				   QUADRAPLE CODE
+	   ______________________________________________________________
+	   ID	OPERATOR	OPERAND1	OPERAND2	RESULT
+	   ______________________________________________________________
+	    0	  +		 B	 	   C	 	 T1
+	    1	  =		 A	 	   T1	 	 T2
+
+
+uban@uban-HP-Pavilion-15-Notebook-PC:~/Desktop/intermediate$ ./a.out
+Enter the Expression: A=((P+Q)*(R-T));
+
+
+
+				 THREE ADDRESS CODE
+		____________________________________________________
+		 RESULT	  OPERAND1	OPERATOR	OPERAND2
+		____________________________________________________
+
+		 T1  : = 	    P	         +		   Q
+		 T2  : = 	    R	         -		   T
+		 T3  : = 	    T3	   *		   T2
+		 T4  : = 	    A	         =		   T3
+
+
+
+
+
+
+
+
+
+ 				   QUADRAPLE CODE
+	   __________________________________________________
+	   ID	OPERATOR	OPERAND1	OPERAND2	RESULT
+	   ___________________________________________________
+	    0	  +		 P	 	Q	 	T1
+	    1	  -		 R	 	T	 	T2
+	    2	  *		 T3	 	T2	 	T3
+	    3	  =		 A	 	T3	 	T4
+ 
